@@ -1,0 +1,129 @@
+Mode: cherry-pick
+Ambient noise config: whitening=von-neumann+sha256, sample_rate=48000, hash_block_bytes=32
+
+Teoretická složitost testů:
+  - Frequency (Monobit) Test: čas O(n), paměť O(n)
+  - Runs Test: čas O(n), paměť O(1)
+  - Block Frequency Test: čas O(n), paměť O(n)
+  - Autocorrelation Test: čas O(n), paměť O(1)
+  - Spectral Test: čas O(n log n), paměť O(n)
+  - Linear Complexity Test: čas O(n * m), paměť O(m)
+  - Diehard Birthday Spacings Test: čas O(n log n), paměť O(n)
+  - Dieharder Byte Distribution Test: čas O(n), paměť O(1)
+
+Pozn.: Hlavni verdikt PASS/FAIL je podle pass-rate vuci NIST proportion prahu. Bayesovske metriky (Jeffreys prior) jsou pouze doplnkove a exportuji se do CSV.
+
+==================================================
+Vícestupňové testování: Mersenne Twister
+Třída generátoru: PRNG
+Parametry: 500 vzorků po 1000000 bitech
+Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
+--------------------------------------------------
+  Frequency (Monobit) Test:
+   - Úspěšných vzorků: 494/500 (98.80 %)
+   - Mean p-value: 0.496677, Median p-value: 0.487682
+   - Stability score: 0.0302, Final score: 0.7215
+   - Pass posterior: 0.9639
+   - Avg gen time: 37.36 ms, Avg test time: 0.69 ms
+   - Odhad náhodnosti (classical): 0.9880, Šance selhání (classical): 0.0120
+   - Odhad náhodnosti (bayes): 0.9639, Šance selhání (bayes): 0.0361
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
+
+  Runs Test:
+   - Úspěšných vzorků: 495/500 (99.00 %)
+   - Mean p-value: 0.501782, Median p-value: 0.497659
+   - Stability score: 0.0157, Final score: 0.7218
+   - Pass posterior: 0.9851
+   - Avg gen time: 37.36 ms, Avg test time: 0.44 ms
+   - Odhad náhodnosti (classical): 0.9900, Šance selhání (classical): 0.0100
+   - Odhad náhodnosti (bayes): 0.9851, Šance selhání (bayes): 0.0149
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
+
+  Block Frequency Test:
+   - Úspěšných vzorků: 493/500 (98.60 %)
+   - Mean p-value: 0.483023, Median p-value: 0.464572
+   - Stability score: 0.0278, Final score: 0.7165
+   - Pass posterior: 0.9254
+   - Avg gen time: 37.36 ms, Avg test time: 0.54 ms
+   - Odhad náhodnosti (classical): 0.9860, Šance selhání (classical): 0.0140
+   - Odhad náhodnosti (bayes): 0.9254, Šance selhání (bayes): 0.0746
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): FAIL
+
+  Autocorrelation Test:
+   - Úspěšných vzorků: 495/500 (99.00 %)
+   - Mean p-value: 0.501862, Median p-value: 0.497138
+   - Stability score: 0.0156, Final score: 0.7218
+   - Pass posterior: 0.9851
+   - Avg gen time: 37.36 ms, Avg test time: 0.23 ms
+   - Odhad náhodnosti (classical): 0.9900, Šance selhání (classical): 0.0100
+   - Odhad náhodnosti (bayes): 0.9851, Šance selhání (bayes): 0.0149
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
+
+  Spectral Test:
+   - Úspěšných vzorků: 497/500 (99.40 %)
+   - Mean p-value: 0.513560, Median p-value: 0.523624
+   - Stability score: 0.0421, Final score: 0.7311
+   - Pass posterior: 0.9986
+   - Avg gen time: 37.36 ms, Avg test time: 13.32 ms
+   - Odhad náhodnosti (classical): 0.9940, Šance selhání (classical): 0.0060
+   - Odhad náhodnosti (bayes): 0.9986, Šance selhání (bayes): 0.0014
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
+
+  Linear Complexity Test:
+   - Úspěšných vzorků: 494/500 (98.80 %)
+   - Mean p-value: 0.479310, Median p-value: 0.477635
+   - Stability score: 0.0095, Final score: 0.7141
+   - Pass posterior: 0.9639
+   - Avg gen time: 37.36 ms, Avg test time: 187.45 ms
+   - Odhad náhodnosti (classical): 0.9880, Šance selhání (classical): 0.0120
+   - Odhad náhodnosti (bayes): 0.9639, Šance selhání (bayes): 0.0361
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
+
+  Diehard Birthday Spacings Test:
+   - Úspěšných vzorků: 494/500 (98.80 %)
+   - Mean p-value: 0.519018, Median p-value: 0.479500
+   - Stability score: 0.0000, Final score: 0.7226
+   - Pass posterior: 0.9639
+   - Avg gen time: 37.36 ms, Avg test time: 0.11 ms
+   - Odhad náhodnosti (classical): 0.9880, Šance selhání (classical): 0.0120
+   - Odhad náhodnosti (bayes): 0.9639, Šance selhání (bayes): 0.0361
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
+
+  Dieharder Byte Distribution Test:
+   - Úspěšných vzorků: 492/500 (98.40 %)
+   - Mean p-value: 0.511199, Median p-value: 0.518992
+   - Stability score: 0.0000, Final score: 0.7182
+   - Pass posterior: 0.8648
+   - Avg gen time: 37.36 ms, Avg test time: 1.84 ms
+   - Odhad náhodnosti (classical): 0.9840, Šance selhání (classical): 0.0160
+   - Odhad náhodnosti (bayes): 0.8648, Šance selhání (bayes): 0.1352
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): FAIL
+
+  => Souhrn generátoru Mersenne Twister: 8/8 testů PASS
+     PASS: Frequency (Monobit) Test, Runs Test, Block Frequency Test, Autocorrelation Test, Spectral Test, Linear Complexity Test, Diehard Birthday Spacings Test, Dieharder Byte Distribution Test
+     FAIL: -
+
+  => Průměrný čas generování pro Mersenne Twister: 37.36 ms
+  => Průměrný čas testu pro Mersenne Twister: 25.58 ms
+  => Průměrný pass-rate přes všechny testy: 98.85 %
+  => Odhad náhodnosti (classical průměr přes testy): 0.9885 (0-1)
+  => Odhad náhodnosti (classical geometrický průměr): 0.9885 (0-1)
+  => Odhad náhodnosti sekvence generátoru (classical min přes testy): 0.9840 (0-1)
+  => Odhad šance selhání (classical): 0.0160 (0-1)
+  => Odhad náhodnosti (bayes průměr přes testy): 0.9563 (0-1)
+  => Odhad náhodnosti (bayes geometrický průměr): 0.9555 (0-1)
+  => Odhad náhodnosti sekvence generátoru (bayes min přes testy): 0.8648 (0-1)
+  => Odhad šance selhání (bayes): 0.1352 (0-1)
+
+CSV export:
+- outputs/Mersenne Twister/output_cherry-pick-2026-04-12 19:42:48.164323-cherry_pick_metrics.csv
+- outputs/Mersenne Twister/output_cherry-pick-2026-04-12 19:42:48.164323-cherry_pick_summary.csv
+
