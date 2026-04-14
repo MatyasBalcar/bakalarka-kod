@@ -7,6 +7,7 @@ import sys
 import time
 import tracemalloc
 from collections import defaultdict
+from typing import TypedDict
 
 import numpy as np
 from tqdm import tqdm
@@ -73,19 +74,48 @@ def make_output_paths(output_txt_path: str, mode: str) -> dict:
 
 AMBIENT_GENERATOR_NAME = "Ambient Noise Generator"
 AMBIENT_AUDIO_DIR = os.path.join("inputs", "audio")
+CUSTOM_INPUTS_DIR = os.path.join("inputs", "custom")
 
 
-def list_audio_bin_files(audio_dir: str = AMBIENT_AUDIO_DIR) -> list[str]:
-    if not os.path.isdir(audio_dir):
+class CustomDatasetMeta(TypedDict):
+    folder_path: str
+    files: list[str]
+
+
+def list_bin_files_in_dir(directory: str) -> list[str]:
+    if not os.path.isdir(directory):
         return []
     files = []
-    for name in sorted(os.listdir(audio_dir)):
+    for name in sorted(os.listdir(directory)):
         if not name.lower().endswith(".bin"):
             continue
-        path = os.path.join(audio_dir, name)
+        path = os.path.join(directory, name)
         if os.path.isfile(path):
             files.append(path)
     return files
+
+
+def discover_custom_dataset_generators(custom_root: str = CUSTOM_INPUTS_DIR) -> dict[str, CustomDatasetMeta]:
+    if not os.path.isdir(custom_root):
+        return {}
+
+    discovered: dict[str, CustomDatasetMeta] = {}
+    for folder_name in sorted(os.listdir(custom_root)):
+        folder_path = os.path.join(custom_root, folder_name)
+        if not os.path.isdir(folder_path):
+            continue
+        files = list_bin_files_in_dir(folder_path)
+        if not files:
+            continue
+        discovered[folder_name] = {
+            "folder_path": folder_path,
+            "files": files,
+        }
+    return discovered
+
+
+def list_audio_bin_files(audio_dir: str = AMBIENT_AUDIO_DIR) -> list[str]:
+    return list_bin_files_in_dir(audio_dir)
 
 
 def generate_audio_bin_files(
@@ -277,18 +307,15 @@ def run_cherry_pick_mode(
         pass_rates_for_generator = []
 
         for _ in tqdm(range(num_samples), desc=f"Zpracování vzorků pro {gen_name}", leave=False):
-            sample_start = time.perf_counter()
-            sample_bits = generator.generate(size_bits=sample_size)
-            sample_elapsed_ms = (time.perf_counter() - sample_start) * 1000.0
-            gen_times_ms.append(sample_elapsed_ms)
+          # Use the same profiling path as benchmark mode so timings are directly comparable.
+            sample_bits, sample_elapsed_sec, _ = profile_generator(generator, size_bits=sample_size)
+            gen_times_ms.append(sample_elapsed_sec * 1000.0)
 
             for test_name, test in tests_to_run:
-                test_start = time.perf_counter()
-                p_value = test.execute(sample_bits)
-                test_elapsed_ms = (time.perf_counter() - test_start) * 1000.0
-                p_values_by_test[test_name].append(float(p_value))
-                test_times_ms_by_test[test_name].append(test_elapsed_ms)
-                if p_value >= alpha:
+                measured = execute_with_metrics(test, sample_bits, alpha=alpha)
+                p_values_by_test[test_name].append(measured["p_value"])
+                test_times_ms_by_test[test_name].append(measured["elapsed_sec"] * 1000.0)
+                if measured["passed"]:
                     pass_counts[test_name] += 1
 
         for test_name in pass_counts:
@@ -658,6 +685,13 @@ if __name__ == "__main__":
         "Alternating Generator": AlternatingGenerator(1),
         "Repeating Generator": RepeatingGenerator(1),
     }
+    custom_generator_sources = {}
+    for folder_name, metadata in discover_custom_dataset_generators().items():
+        display_name = folder_name
+        if display_name in all_generators:
+            display_name = f"{folder_name} (custom)"
+        custom_generator_sources[display_name] = metadata
+        all_generators[display_name] = None
 
     # Inicializace testů
     all_tests = [
@@ -689,6 +723,13 @@ if __name__ == "__main__":
                 strict=True,
             )
             ambient_dataset_info = f"{AMBIENT_AUDIO_DIR} ({len(benchmark_audio_files)} files)"
+            for gen_name, metadata in custom_generator_sources.items():
+                generators[gen_name] = AudioSampleBatchGenerator(
+                    filepaths=metadata["files"],
+                    strict=False,
+                    enforce_size_bits=False,
+                    warn_on_short_sample=True,
+                )
 
         if MODE == "cherry-pick":
             print_generators(all_generators)
@@ -710,6 +751,17 @@ if __name__ == "__main__":
                         run_generator = AudioSampleBatchGenerator(filepaths=file_paths, strict=True)
                         run_num_samples = len(file_paths)
                         run_ambient_info = f"{AMBIENT_AUDIO_DIR} ({len(file_paths)} files)"
+                    elif gen_name in custom_generator_sources:
+                        metadata = custom_generator_sources[gen_name]
+                        run_generator = AudioSampleBatchGenerator(
+                            filepaths=metadata["files"],
+                            strict=False,
+                            enforce_size_bits=False,
+                            warn_on_short_sample=True,
+                        )
+                        run_ambient_info = (
+                            f"{metadata['folder_path']} ({len(metadata['files'])} files)"
+                        )
 
                     cherry_pick_runs.append({
                         "name": gen_name,
@@ -731,6 +783,17 @@ if __name__ == "__main__":
                     selected_generator = AudioSampleBatchGenerator(filepaths=file_paths, strict=True)
                     run_num_samples = len(file_paths)
                     run_ambient_info = f"{AMBIENT_AUDIO_DIR} ({len(file_paths)} files)"
+                elif selected_generator_name in custom_generator_sources:
+                    metadata = custom_generator_sources[selected_generator_name]
+                    selected_generator = AudioSampleBatchGenerator(
+                        filepaths=metadata["files"],
+                        strict=False,
+                        enforce_size_bits=False,
+                        warn_on_short_sample=True,
+                    )
+                    run_ambient_info = (
+                        f"{metadata['folder_path']} ({len(metadata['files'])} files)"
+                    )
 
                 cherry_pick_runs.append({
                     "name": selected_generator_name,

@@ -24,7 +24,7 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
    - Mean p-value: 0.512515, Median p-value: 0.541200
    - Stability score: 0.0043, Final score: 0.7240
    - Pass posterior: 0.9949
-   - Avg gen time: 0.16 ms, Avg test time: 0.61 ms
+   - Avg gen time: 0.16 ms, Avg test time: 0.58 ms
    - Odhad náhodnosti (classical): 0.9920, Šance selhání (classical): 0.0080
    - Odhad náhodnosti (bayes): 0.9949, Šance selhání (bayes): 0.0051
    - Verdikt testu (pass-rate): PASS
@@ -35,7 +35,7 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
    - Mean p-value: 0.509265, Median p-value: 0.508761
    - Stability score: 0.0066, Final score: 0.7247
    - Pass posterior: 0.9986
-   - Avg gen time: 0.16 ms, Avg test time: 0.41 ms
+   - Avg gen time: 0.16 ms, Avg test time: 0.37 ms
    - Odhad náhodnosti (classical): 0.9940, Šance selhání (classical): 0.0060
    - Odhad náhodnosti (bayes): 0.9986, Šance selhání (bayes): 0.0014
    - Verdikt testu (pass-rate): PASS
@@ -46,7 +46,7 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
    - Mean p-value: 0.517247, Median p-value: 0.524098
    - Stability score: 0.0032, Final score: 0.7226
    - Pass posterior: 0.9639
-   - Avg gen time: 0.16 ms, Avg test time: 0.52 ms
+   - Avg gen time: 0.16 ms, Avg test time: 0.49 ms
    - Odhad náhodnosti (classical): 0.9880, Šance selhání (classical): 0.0120
    - Odhad náhodnosti (bayes): 0.9639, Šance selhání (bayes): 0.0361
    - Verdikt testu (pass-rate): PASS
@@ -57,7 +57,7 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
    - Mean p-value: 0.509237, Median p-value: 0.509254
    - Stability score: 0.0065, Final score: 0.7247
    - Pass posterior: 0.9986
-   - Avg gen time: 0.16 ms, Avg test time: 0.23 ms
+   - Avg gen time: 0.16 ms, Avg test time: 0.20 ms
    - Odhad náhodnosti (classical): 0.9940, Šance selhání (classical): 0.0060
    - Odhad náhodnosti (bayes): 0.9986, Šance selhání (bayes): 0.0014
    - Verdikt testu (pass-rate): PASS
@@ -68,7 +68,7 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
    - Mean p-value: 0.522383, Median p-value: 0.535642
    - Stability score: 0.0108, Final score: 0.7274
    - Pass posterior: 0.9949
-   - Avg gen time: 0.16 ms, Avg test time: 13.36 ms
+   - Avg gen time: 0.16 ms, Avg test time: 11.45 ms
    - Odhad náhodnosti (classical): 0.9920, Šance selhání (classical): 0.0080
    - Odhad náhodnosti (bayes): 0.9949, Šance selhání (bayes): 0.0051
    - Verdikt testu (pass-rate): PASS
@@ -79,7 +79,7 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
    - Mean p-value: 0.491258, Median p-value: 0.511866
    - Stability score: 0.0092, Final score: 0.7170
    - Pass posterior: 0.9639
-   - Avg gen time: 0.16 ms, Avg test time: 186.18 ms
+   - Avg gen time: 0.16 ms, Avg test time: 266.01 ms
    - Odhad náhodnosti (classical): 0.9880, Šance selhání (classical): 0.0120
    - Odhad náhodnosti (bayes): 0.9639, Šance selhání (bayes): 0.0361
    - Verdikt testu (pass-rate): PASS
@@ -90,7 +90,7 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
    - Mean p-value: 0.533013, Median p-value: 0.479500
    - Stability score: 0.0000, Final score: 0.7261
    - Pass posterior: 0.9639
-   - Avg gen time: 0.16 ms, Avg test time: 0.11 ms
+   - Avg gen time: 0.16 ms, Avg test time: 0.15 ms
    - Odhad náhodnosti (classical): 0.9880, Šance selhání (classical): 0.0120
    - Odhad náhodnosti (bayes): 0.9639, Šance selhání (bayes): 0.0361
    - Verdikt testu (pass-rate): PASS
@@ -101,7 +101,7 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
    - Mean p-value: 0.468918, Median p-value: 0.457767
    - Stability score: 0.0000, Final score: 0.7076
    - Pass posterior: 0.8648
-   - Avg gen time: 0.16 ms, Avg test time: 1.82 ms
+   - Avg gen time: 0.16 ms, Avg test time: 1.76 ms
    - Odhad náhodnosti (classical): 0.9840, Šance selhání (classical): 0.0160
    - Odhad náhodnosti (bayes): 0.8648, Šance selhání (bayes): 0.1352
    - Verdikt testu (pass-rate): PASS
@@ -112,7 +112,7 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
      FAIL: -
 
   => Průměrný čas generování pro PCG64: 0.16 ms
-  => Průměrný čas testu pro PCG64: 25.41 ms
+  => Průměrný čas testu pro PCG64: 35.13 ms
   => Průměrný pass-rate přes všechny testy: 99.00 %
   => Odhad náhodnosti (classical průměr přes testy): 0.9900 (0-1)
   => Odhad náhodnosti (classical geometrický průměr): 0.9900 (0-1)
@@ -124,6 +124,6 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
   => Odhad šance selhání (bayes): 0.1352 (0-1)
 
 CSV export:
-- outputs/PCG64/output_cherry-pick-2026-04-12 19:42:52.195252-cherry_pick_metrics.csv
-- outputs/PCG64/output_cherry-pick-2026-04-12 19:42:52.195252-cherry_pick_summary.csv
+- outputs/PCG64/output_cherry-pick-2026-04-13 17:30:06.211088-cherry_pick_metrics.csv
+- outputs/PCG64/output_cherry-pick-2026-04-13 17:30:06.211088-cherry_pick_summary.csv
 

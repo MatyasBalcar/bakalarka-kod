@@ -59,14 +59,23 @@ class AudioSampleBatchGenerator(Generator):
 
     generator_class = "TRNG"
 
-    def __init__(self, filepaths: list[str], strict: bool = True):
+    def __init__(
+            self,
+            filepaths: list[str],
+            strict: bool = True,
+            enforce_size_bits: bool = True,
+            warn_on_short_sample: bool = False,
+    ):
         if not filepaths:
             raise ValueError("AudioSampleBatchGenerator requires at least one .bin file.")
 
         self.filepaths = filepaths
         self.strict = strict
+        self.enforce_size_bits = enforce_size_bits
+        self.warn_on_short_sample = warn_on_short_sample
         self._bits_by_file = [_load_bits_from_bin_file(path) for path in filepaths]
         self._sample_cursor = 0
+        self._warned_short_sample = False
 
     def generate(self, size_bits: int) -> np.ndarray:
         if size_bits <= 0:
@@ -84,11 +93,20 @@ class AudioSampleBatchGenerator(Generator):
         self._sample_cursor += 1
 
         if bits.size < size_bits:
-            raise ValueError(
-                f"Audio sample is too short. Required {size_bits} bits, available {bits.size}."
-            )
+            if self.enforce_size_bits:
+                raise ValueError(
+                    f"Audio sample is too short. Required {size_bits} bits, available {bits.size}."
+                )
+            if self.warn_on_short_sample and not self._warned_short_sample:
+                print(
+                    "WARNING: Dataset sample is shorter than requested sample_size "
+                    f"({bits.size} < {size_bits}). Running anyway."
+                )
+                self._warned_short_sample = True
 
-        return bits[:size_bits]
+        if self.enforce_size_bits:
+            return bits[:size_bits]
+        return bits
 
 
 class AmbientNoiseGenerator(Generator):

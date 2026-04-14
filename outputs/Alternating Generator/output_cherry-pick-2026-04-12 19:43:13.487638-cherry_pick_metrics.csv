@@ -1,9 +1,0 @@
-generator,generator_class,test,sample_size,sample_iter,pass_rate,mean_p,median_p,stability_score,final_score,pass_posterior_chance,classical_randomness_chance,classical_fail_chance,bayes_randomness_chance,bayes_fail_chance,randomness_chance,fail_chance,avg_gen_time_ms,avg_test_time_ms,verdict,bayes_verdict
-Alternating Generator,PR,Frequency (Monobit) Test,1000000,500,1.0,1.0,1.0,1.0,1.0,0.9999988372569716,1.0,0.0,0.9999988372569716,1.1627430284155693e-06,0.9999988372569716,1.1627430284155693e-06,0.17320841655600816,0.734498314675875,PASS,PASS
-Alternating Generator,PR,Runs Test,1000000,500,0.0,0.0,0.0,1.0,0.15,0.0,0.0,1.0,0.0,1.0,0.0,1.0,0.17320841655600816,0.468431499437429,FAIL,FAIL
-Alternating Generator,PR,Block Frequency Test,1000000,500,1.0,1.0,1.0,1.0,1.0,0.9999988372569716,1.0,0.0,0.9999988372569716,1.1627430284155693e-06,0.9999988372569716,1.1627430284155693e-06,0.17320841655600816,0.5932025887304917,PASS,PASS
-Alternating Generator,PR,Autocorrelation Test,1000000,500,0.0,0.0,0.0,1.0,0.15,0.0,0.0,1.0,0.0,1.0,0.0,1.0,0.17320841655600816,0.25541333376895636,FAIL,FAIL
-Alternating Generator,PR,Spectral Test,1000000,500,0.0,0.0,0.0,1.0,0.15,0.0,0.0,1.0,0.0,1.0,0.0,1.0,0.17320841655600816,14.590168497990817,FAIL,FAIL
-Alternating Generator,PR,Linear Complexity Test,1000000,500,0.0,0.0,0.0,1.0,0.15,0.0,0.0,1.0,0.0,1.0,0.0,1.0,0.17320841655600816,5.8242065840167925,FAIL,FAIL
-Alternating Generator,PR,Diehard Birthday Spacings Test,1000000,500,0.0,0.0,0.0,1.0,0.15,0.0,0.0,1.0,0.0,1.0,0.0,1.0,0.17320841655600816,0.07868872978724539,FAIL,FAIL
-Alternating Generator,PR,Dieharder Byte Distribution Test,1000000,500,0.0,0.0,0.0,1.0,0.15,0.0,0.0,1.0,0.0,1.0,0.0,1.0,0.17320841655600816,2.1946658358210698,FAIL,FAIL

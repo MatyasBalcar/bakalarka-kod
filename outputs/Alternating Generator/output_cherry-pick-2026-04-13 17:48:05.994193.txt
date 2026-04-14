@@ -14,50 +14,50 @@ Teoretická složitost testů:
 Pozn.: Hlavni verdikt PASS/FAIL je podle pass-rate vuci NIST proportion prahu. Bayesovske metriky (Jeffreys prior) jsou pouze doplnkove a exportuji se do CSV.
 
 ==================================================
-Vícestupňové testování: Repeating Generator
+Vícestupňové testování: Alternating Generator
 Třída generátoru: PR
 Parametry: 500 vzorků po 1000000 bitech
 Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
 --------------------------------------------------
   Frequency (Monobit) Test:
-   - Úspěšných vzorků: 0/500 (0.00 %)
-   - Mean p-value: 0.000000, Median p-value: 0.000000
-   - Stability score: 1.0000, Final score: 0.1500
-   - Pass posterior: 0.0000
-   - Avg gen time: 0.33 ms, Avg test time: 0.82 ms
-   - Odhad náhodnosti (classical): 0.0000, Šance selhání (classical): 1.0000
-   - Odhad náhodnosti (bayes): 0.0000, Šance selhání (bayes): 1.0000
-   - Verdikt testu (pass-rate): FAIL
-   - Bayes verdict (doplnkove): FAIL
+   - Úspěšných vzorků: 500/500 (100.00 %)
+   - Mean p-value: 1.000000, Median p-value: 1.000000
+   - Stability score: 1.0000, Final score: 1.0000
+   - Pass posterior: 1.0000
+   - Avg gen time: 0.16 ms, Avg test time: 0.52 ms
+   - Odhad náhodnosti (classical): 1.0000, Šance selhání (classical): 0.0000
+   - Odhad náhodnosti (bayes): 1.0000, Šance selhání (bayes): 0.0000
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
 
   Runs Test:
    - Úspěšných vzorků: 0/500 (0.00 %)
    - Mean p-value: 0.000000, Median p-value: 0.000000
    - Stability score: 1.0000, Final score: 0.1500
    - Pass posterior: 0.0000
-   - Avg gen time: 0.33 ms, Avg test time: 0.22 ms
+   - Avg gen time: 0.16 ms, Avg test time: 0.37 ms
    - Odhad náhodnosti (classical): 0.0000, Šance selhání (classical): 1.0000
    - Odhad náhodnosti (bayes): 0.0000, Šance selhání (bayes): 1.0000
    - Verdikt testu (pass-rate): FAIL
    - Bayes verdict (doplnkove): FAIL
 
   Block Frequency Test:
-   - Úspěšných vzorků: 0/500 (0.00 %)
-   - Mean p-value: 0.000000, Median p-value: 0.000000
-   - Stability score: 1.0000, Final score: 0.1500
-   - Pass posterior: 0.0000
-   - Avg gen time: 0.33 ms, Avg test time: 0.61 ms
-   - Odhad náhodnosti (classical): 0.0000, Šance selhání (classical): 1.0000
-   - Odhad náhodnosti (bayes): 0.0000, Šance selhání (bayes): 1.0000
-   - Verdikt testu (pass-rate): FAIL
-   - Bayes verdict (doplnkove): FAIL
+   - Úspěšných vzorků: 500/500 (100.00 %)
+   - Mean p-value: 1.000000, Median p-value: 1.000000
+   - Stability score: 1.0000, Final score: 1.0000
+   - Pass posterior: 1.0000
+   - Avg gen time: 0.16 ms, Avg test time: 0.48 ms
+   - Odhad náhodnosti (classical): 1.0000, Šance selhání (classical): 0.0000
+   - Odhad náhodnosti (bayes): 1.0000, Šance selhání (bayes): 0.0000
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
 
   Autocorrelation Test:
    - Úspěšných vzorků: 0/500 (0.00 %)
    - Mean p-value: 0.000000, Median p-value: 0.000000
    - Stability score: 1.0000, Final score: 0.1500
    - Pass posterior: 0.0000
-   - Avg gen time: 0.33 ms, Avg test time: 0.27 ms
+   - Avg gen time: 0.16 ms, Avg test time: 0.21 ms
    - Odhad náhodnosti (classical): 0.0000, Šance selhání (classical): 1.0000
    - Odhad náhodnosti (bayes): 0.0000, Šance selhání (bayes): 1.0000
    - Verdikt testu (pass-rate): FAIL
@@ -68,7 +68,7 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
    - Mean p-value: 0.000000, Median p-value: 0.000000
    - Stability score: 1.0000, Final score: 0.1500
    - Pass posterior: 0.0000
-   - Avg gen time: 0.33 ms, Avg test time: 15.07 ms
+   - Avg gen time: 0.16 ms, Avg test time: 11.12 ms
    - Odhad náhodnosti (classical): 0.0000, Šance selhání (classical): 1.0000
    - Odhad náhodnosti (bayes): 0.0000, Šance selhání (bayes): 1.0000
    - Verdikt testu (pass-rate): FAIL
@@ -79,7 +79,7 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
    - Mean p-value: 0.000000, Median p-value: 0.000000
    - Stability score: 1.0000, Final score: 0.1500
    - Pass posterior: 0.0000
-   - Avg gen time: 0.33 ms, Avg test time: 4.17 ms
+   - Avg gen time: 0.16 ms, Avg test time: 10.62 ms
    - Odhad náhodnosti (classical): 0.0000, Šance selhání (classical): 1.0000
    - Odhad náhodnosti (bayes): 0.0000, Šance selhání (bayes): 1.0000
    - Verdikt testu (pass-rate): FAIL
@@ -90,7 +90,7 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
    - Mean p-value: 0.000000, Median p-value: 0.000000
    - Stability score: 1.0000, Final score: 0.1500
    - Pass posterior: 0.0000
-   - Avg gen time: 0.33 ms, Avg test time: 0.08 ms
+   - Avg gen time: 0.16 ms, Avg test time: 0.11 ms
    - Odhad náhodnosti (classical): 0.0000, Šance selhání (classical): 1.0000
    - Odhad náhodnosti (bayes): 0.0000, Šance selhání (bayes): 1.0000
    - Verdikt testu (pass-rate): FAIL
@@ -101,29 +101,29 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
    - Mean p-value: 0.000000, Median p-value: 0.000000
    - Stability score: 1.0000, Final score: 0.1500
    - Pass posterior: 0.0000
-   - Avg gen time: 0.33 ms, Avg test time: 2.29 ms
+   - Avg gen time: 0.16 ms, Avg test time: 1.71 ms
    - Odhad náhodnosti (classical): 0.0000, Šance selhání (classical): 1.0000
    - Odhad náhodnosti (bayes): 0.0000, Šance selhání (bayes): 1.0000
    - Verdikt testu (pass-rate): FAIL
    - Bayes verdict (doplnkove): FAIL
 
-  => Souhrn generátoru Repeating Generator: 0/8 testů PASS
-     PASS: -
-     FAIL: Frequency (Monobit) Test, Runs Test, Block Frequency Test, Autocorrelation Test, Spectral Test, Linear Complexity Test, Diehard Birthday Spacings Test, Dieharder Byte Distribution Test
+  => Souhrn generátoru Alternating Generator: 2/8 testů PASS
+     PASS: Frequency (Monobit) Test, Block Frequency Test
+     FAIL: Runs Test, Autocorrelation Test, Spectral Test, Linear Complexity Test, Diehard Birthday Spacings Test, Dieharder Byte Distribution Test
 
-  => Průměrný čas generování pro Repeating Generator: 0.33 ms
-  => Průměrný čas testu pro Repeating Generator: 2.94 ms
-  => Průměrný pass-rate přes všechny testy: 0.00 %
-  => Odhad náhodnosti (classical průměr přes testy): 0.0000 (0-1)
+  => Průměrný čas generování pro Alternating Generator: 0.16 ms
+  => Průměrný čas testu pro Alternating Generator: 3.14 ms
+  => Průměrný pass-rate přes všechny testy: 25.00 %
+  => Odhad náhodnosti (classical průměr přes testy): 0.2500 (0-1)
   => Odhad náhodnosti (classical geometrický průměr): 0.0000 (0-1)
   => Odhad náhodnosti sekvence generátoru (classical min přes testy): 0.0000 (0-1)
   => Odhad šance selhání (classical): 1.0000 (0-1)
-  => Odhad náhodnosti (bayes průměr přes testy): 0.0000 (0-1)
+  => Odhad náhodnosti (bayes průměr přes testy): 0.2500 (0-1)
   => Odhad náhodnosti (bayes geometrický průměr): 0.0000 (0-1)
   => Odhad náhodnosti sekvence generátoru (bayes min přes testy): 0.0000 (0-1)
   => Odhad šance selhání (bayes): 1.0000 (0-1)
 
 CSV export:
-- outputs/Repeating Generator/output_cherry-pick-2026-04-12 19:43:21.630706-cherry_pick_metrics.csv
-- outputs/Repeating Generator/output_cherry-pick-2026-04-12 19:43:21.630706-cherry_pick_summary.csv
+- outputs/Alternating Generator/output_cherry-pick-2026-04-13 17:48:05.994193-cherry_pick_metrics.csv
+- outputs/Alternating Generator/output_cherry-pick-2026-04-13 17:48:05.994193-cherry_pick_summary.csv
 
