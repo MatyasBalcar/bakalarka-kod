@@ -1,3 +1,7 @@
+"""
+Tento modul ridi uzivatelske rozhrsni
+"""
+
 def print_tests(tests):
     i = 0
     for test in tests:

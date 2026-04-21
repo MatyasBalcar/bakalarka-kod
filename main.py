@@ -1,3 +1,7 @@
+"""
+Main soubor, spustitelny
+"""
+
 import csv
 import datetime
 import json

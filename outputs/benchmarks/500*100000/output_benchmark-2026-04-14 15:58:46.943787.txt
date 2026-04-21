@@ -1,0 +1,363 @@
+Mode: benchmark
+Ambient noise config: whitening=von-neumann+sha256, sample_rate=48000, hash_block_bytes=32
+Ambient audio dataset: inputs/audio (500 files)
+
+Benchmark režim: čas + paměť + p-value
+Počet opakování na kombinaci: 500
+Testované velikosti: [100000]
+
+Teoretická složitost testů:
+  - Frequency (Monobit) Test: čas O(n), paměť O(n)
+  - Runs Test: čas O(n), paměť O(1)
+  - Block Frequency Test: čas O(n), paměť O(n)
+  - Autocorrelation Test: čas O(n), paměť O(1)
+  - Spectral Test: čas O(n log n), paměť O(n)
+  - Linear Complexity Test: čas O(n * m), paměť O(m)
+  - Diehard Birthday Spacings Test: čas O(n log n), paměť O(n)
+  - Dieharder Byte Distribution Test: čas O(n), paměť O(1)
+
+Výsledky benchmarku (průměry):
+[100000 bit] Alternating Generator | Autocorrelation Test
+  - gen:  0.03 ms, peak 98.39 KiB
+  - test: 0.03 ms, peak 162.62 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Alternating Generator | Block Frequency Test
+  - gen:  0.03 ms, peak 98.39 KiB
+  - test: 0.07 ms, peak 71.24 KiB
+  - avg p-value: 1.000000, pass-rate: 100.00 %
+
+[100000 bit] Alternating Generator | Diehard Birthday Spacings Test
+  - gen:  0.03 ms, peak 98.39 KiB
+  - test: 0.09 ms, peak 257.58 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Alternating Generator | Dieharder Byte Distribution Test
+  - gen:  0.03 ms, peak 98.39 KiB
+  - test: 0.20 ms, peak 1628.02 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Alternating Generator | Frequency (Monobit) Test
+  - gen:  0.03 ms, peak 98.39 KiB
+  - test: 0.06 ms, peak 782.22 KiB
+  - avg p-value: 1.000000, pass-rate: 100.00 %
+
+[100000 bit] Alternating Generator | Linear Complexity Test
+  - gen:  0.03 ms, peak 98.39 KiB
+  - test: 1.19 ms, peak 9.60 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Alternating Generator | Runs Test
+  - gen:  0.03 ms, peak 98.39 KiB
+  - test: 0.06 ms, peak 162.67 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Alternating Generator | Spectral Test
+  - gen:  0.03 ms, peak 98.39 KiB
+  - test: 0.91 ms, peak 3907.80 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Ambient Noise Generator | Autocorrelation Test
+  - gen:  0.00 ms, peak 0.09 KiB
+  - test: 0.03 ms, peak 162.62 KiB
+  - avg p-value: 0.494254, pass-rate: 98.40 %
+
+[100000 bit] Ambient Noise Generator | Block Frequency Test
+  - gen:  0.00 ms, peak 0.09 KiB
+  - test: 0.07 ms, peak 71.24 KiB
+  - avg p-value: 0.469964, pass-rate: 98.60 %
+
+[100000 bit] Ambient Noise Generator | Diehard Birthday Spacings Test
+  - gen:  0.00 ms, peak 0.09 KiB
+  - test: 0.11 ms, peak 257.58 KiB
+  - avg p-value: 0.511152, pass-rate: 97.40 %
+
+[100000 bit] Ambient Noise Generator | Dieharder Byte Distribution Test
+  - gen:  0.00 ms, peak 0.09 KiB
+  - test: 0.18 ms, peak 1628.02 KiB
+  - avg p-value: 0.491751, pass-rate: 98.80 %
+
+[100000 bit] Ambient Noise Generator | Frequency (Monobit) Test
+  - gen:  0.00 ms, peak 0.09 KiB
+  - test: 0.07 ms, peak 782.22 KiB
+  - avg p-value: 0.509306, pass-rate: 99.40 %
+
+[100000 bit] Ambient Noise Generator | Linear Complexity Test
+  - gen:  0.00 ms, peak 0.09 KiB
+  - test: 27.38 ms, peak 9.60 KiB
+  - avg p-value: 0.506343, pass-rate: 98.80 %
+
+[100000 bit] Ambient Noise Generator | Runs Test
+  - gen:  0.00 ms, peak 0.09 KiB
+  - test: 0.06 ms, peak 162.67 KiB
+  - avg p-value: 0.494000, pass-rate: 98.40 %
+
+[100000 bit] Ambient Noise Generator | Spectral Test
+  - gen:  0.00 ms, peak 0.09 KiB
+  - test: 0.90 ms, peak 3907.81 KiB
+  - avg p-value: 0.493076, pass-rate: 98.40 %
+
+[100000 bit] Blum-Blum-Shub | Autocorrelation Test
+  - gen:  96.14 ms, peak 103.22 KiB
+  - test: 0.03 ms, peak 162.62 KiB
+  - avg p-value: 0.503967, pass-rate: 99.20 %
+
+[100000 bit] Blum-Blum-Shub | Block Frequency Test
+  - gen:  96.14 ms, peak 103.22 KiB
+  - test: 0.08 ms, peak 71.24 KiB
+  - avg p-value: 0.504575, pass-rate: 99.60 %
+
+[100000 bit] Blum-Blum-Shub | Diehard Birthday Spacings Test
+  - gen:  96.14 ms, peak 103.22 KiB
+  - test: 0.12 ms, peak 257.58 KiB
+  - avg p-value: 0.522440, pass-rate: 98.00 %
+
+[100000 bit] Blum-Blum-Shub | Dieharder Byte Distribution Test
+  - gen:  96.14 ms, peak 103.22 KiB
+  - test: 0.18 ms, peak 1628.02 KiB
+  - avg p-value: 0.498356, pass-rate: 99.60 %
+
+[100000 bit] Blum-Blum-Shub | Frequency (Monobit) Test
+  - gen:  96.14 ms, peak 103.22 KiB
+  - test: 0.07 ms, peak 782.22 KiB
+  - avg p-value: 0.510168, pass-rate: 98.40 %
+
+[100000 bit] Blum-Blum-Shub | Linear Complexity Test
+  - gen:  96.14 ms, peak 103.22 KiB
+  - test: 27.31 ms, peak 9.60 KiB
+  - avg p-value: 0.511121, pass-rate: 99.40 %
+
+[100000 bit] Blum-Blum-Shub | Runs Test
+  - gen:  96.14 ms, peak 103.22 KiB
+  - test: 0.06 ms, peak 162.67 KiB
+  - avg p-value: 0.504099, pass-rate: 99.20 %
+
+[100000 bit] Blum-Blum-Shub | Spectral Test
+  - gen:  96.14 ms, peak 103.22 KiB
+  - test: 0.88 ms, peak 3907.80 KiB
+  - avg p-value: 0.505312, pass-rate: 98.80 %
+
+[100000 bit] LCG | Autocorrelation Test
+  - gen:  3.07 ms, peak 115.41 KiB
+  - test: 0.03 ms, peak 162.62 KiB
+  - avg p-value: 0.534963, pass-rate: 99.60 %
+
+[100000 bit] LCG | Block Frequency Test
+  - gen:  3.07 ms, peak 115.41 KiB
+  - test: 0.07 ms, peak 71.24 KiB
+  - avg p-value: 0.977290, pass-rate: 100.00 %
+
+[100000 bit] LCG | Diehard Birthday Spacings Test
+  - gen:  3.07 ms, peak 115.41 KiB
+  - test: 0.11 ms, peak 257.58 KiB
+  - avg p-value: 0.549079, pass-rate: 99.40 %
+
+[100000 bit] LCG | Dieharder Byte Distribution Test
+  - gen:  3.07 ms, peak 115.41 KiB
+  - test: 0.18 ms, peak 1628.02 KiB
+  - avg p-value: 0.994116, pass-rate: 100.00 %
+
+[100000 bit] LCG | Frequency (Monobit) Test
+  - gen:  3.07 ms, peak 115.41 KiB
+  - test: 0.06 ms, peak 782.22 KiB
+  - avg p-value: 0.579759, pass-rate: 100.00 %
+
+[100000 bit] LCG | Linear Complexity Test
+  - gen:  3.07 ms, peak 115.41 KiB
+  - test: 27.79 ms, peak 51.10 KiB
+  - avg p-value: 0.508939, pass-rate: 99.20 %
+
+[100000 bit] LCG | Runs Test
+  - gen:  3.07 ms, peak 115.41 KiB
+  - test: 0.06 ms, peak 162.67 KiB
+  - avg p-value: 0.534940, pass-rate: 99.60 %
+
+[100000 bit] LCG | Spectral Test
+  - gen:  3.07 ms, peak 115.41 KiB
+  - test: 0.86 ms, peak 3907.80 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Mersenne Twister | Autocorrelation Test
+  - gen:  28.33 ms, peak 115.47 KiB
+  - test: 0.03 ms, peak 162.62 KiB
+  - avg p-value: 0.519896, pass-rate: 99.00 %
+
+[100000 bit] Mersenne Twister | Block Frequency Test
+  - gen:  28.33 ms, peak 115.47 KiB
+  - test: 0.07 ms, peak 71.24 KiB
+  - avg p-value: 0.493338, pass-rate: 98.80 %
+
+[100000 bit] Mersenne Twister | Diehard Birthday Spacings Test
+  - gen:  28.33 ms, peak 115.47 KiB
+  - test: 0.12 ms, peak 257.58 KiB
+  - avg p-value: 0.525171, pass-rate: 98.20 %
+
+[100000 bit] Mersenne Twister | Dieharder Byte Distribution Test
+  - gen:  28.33 ms, peak 115.47 KiB
+  - test: 0.18 ms, peak 1628.02 KiB
+  - avg p-value: 0.504820, pass-rate: 99.20 %
+
+[100000 bit] Mersenne Twister | Frequency (Monobit) Test
+  - gen:  28.33 ms, peak 115.47 KiB
+  - test: 0.07 ms, peak 782.22 KiB
+  - avg p-value: 0.503227, pass-rate: 98.80 %
+
+[100000 bit] Mersenne Twister | Linear Complexity Test
+  - gen:  28.33 ms, peak 115.47 KiB
+  - test: 26.98 ms, peak 9.60 KiB
+  - avg p-value: 0.490408, pass-rate: 97.80 %
+
+[100000 bit] Mersenne Twister | Runs Test
+  - gen:  28.33 ms, peak 115.47 KiB
+  - test: 0.06 ms, peak 162.67 KiB
+  - avg p-value: 0.519753, pass-rate: 99.00 %
+
+[100000 bit] Mersenne Twister | Spectral Test
+  - gen:  28.33 ms, peak 115.47 KiB
+  - test: 0.88 ms, peak 3907.80 KiB
+  - avg p-value: 0.482727, pass-rate: 99.20 %
+
+[100000 bit] PCG64 | Autocorrelation Test
+  - gen:  0.04 ms, peak 115.23 KiB
+  - test: 0.03 ms, peak 162.62 KiB
+  - avg p-value: 0.508863, pass-rate: 99.00 %
+
+[100000 bit] PCG64 | Block Frequency Test
+  - gen:  0.04 ms, peak 115.23 KiB
+  - test: 0.07 ms, peak 71.24 KiB
+  - avg p-value: 0.496748, pass-rate: 99.20 %
+
+[100000 bit] PCG64 | Diehard Birthday Spacings Test
+  - gen:  0.04 ms, peak 115.23 KiB
+  - test: 0.12 ms, peak 257.58 KiB
+  - avg p-value: 0.529192, pass-rate: 98.80 %
+
+[100000 bit] PCG64 | Dieharder Byte Distribution Test
+  - gen:  0.04 ms, peak 115.23 KiB
+  - test: 0.19 ms, peak 1628.02 KiB
+  - avg p-value: 0.510520, pass-rate: 99.20 %
+
+[100000 bit] PCG64 | Frequency (Monobit) Test
+  - gen:  0.04 ms, peak 115.23 KiB
+  - test: 0.06 ms, peak 782.22 KiB
+  - avg p-value: 0.504068, pass-rate: 98.80 %
+
+[100000 bit] PCG64 | Linear Complexity Test
+  - gen:  0.04 ms, peak 115.23 KiB
+  - test: 27.37 ms, peak 9.60 KiB
+  - avg p-value: 0.489595, pass-rate: 98.20 %
+
+[100000 bit] PCG64 | Runs Test
+  - gen:  0.04 ms, peak 115.23 KiB
+  - test: 0.06 ms, peak 162.67 KiB
+  - avg p-value: 0.508938, pass-rate: 99.00 %
+
+[100000 bit] PCG64 | Spectral Test
+  - gen:  0.04 ms, peak 115.23 KiB
+  - test: 0.91 ms, peak 3907.80 KiB
+  - avg p-value: 0.482840, pass-rate: 98.80 %
+
+[100000 bit] Repeating Generator | Autocorrelation Test
+  - gen:  0.04 ms, peak 98.39 KiB
+  - test: 0.03 ms, peak 162.62 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Repeating Generator | Block Frequency Test
+  - gen:  0.04 ms, peak 98.39 KiB
+  - test: 0.07 ms, peak 71.24 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Repeating Generator | Diehard Birthday Spacings Test
+  - gen:  0.04 ms, peak 98.39 KiB
+  - test: 0.09 ms, peak 257.58 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Repeating Generator | Dieharder Byte Distribution Test
+  - gen:  0.04 ms, peak 98.39 KiB
+  - test: 0.19 ms, peak 1628.02 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Repeating Generator | Frequency (Monobit) Test
+  - gen:  0.04 ms, peak 98.39 KiB
+  - test: 0.06 ms, peak 782.22 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Repeating Generator | Linear Complexity Test
+  - gen:  0.04 ms, peak 98.39 KiB
+  - test: 0.93 ms, peak 9.60 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Repeating Generator | Runs Test
+  - gen:  0.04 ms, peak 98.39 KiB
+  - test: 0.02 ms, peak 64.88 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] Repeating Generator | Spectral Test
+  - gen:  0.04 ms, peak 98.39 KiB
+  - test: 0.89 ms, peak 3907.80 KiB
+  - avg p-value: 0.000000, pass-rate: 0.00 %
+
+[100000 bit] XORShift32 | Autocorrelation Test
+  - gen:  13.09 ms, peak 115.34 KiB
+  - test: 0.03 ms, peak 162.62 KiB
+  - avg p-value: 0.460625, pass-rate: 98.80 %
+
+[100000 bit] XORShift32 | Block Frequency Test
+  - gen:  13.09 ms, peak 115.34 KiB
+  - test: 0.07 ms, peak 71.24 KiB
+  - avg p-value: 0.485936, pass-rate: 98.60 %
+
+[100000 bit] XORShift32 | Diehard Birthday Spacings Test
+  - gen:  13.09 ms, peak 115.34 KiB
+  - test: 0.12 ms, peak 257.58 KiB
+  - avg p-value: 0.552395, pass-rate: 99.00 %
+
+[100000 bit] XORShift32 | Dieharder Byte Distribution Test
+  - gen:  13.09 ms, peak 115.34 KiB
+  - test: 0.18 ms, peak 1628.02 KiB
+  - avg p-value: 0.504019, pass-rate: 99.20 %
+
+[100000 bit] XORShift32 | Frequency (Monobit) Test
+  - gen:  13.09 ms, peak 115.34 KiB
+  - test: 0.07 ms, peak 782.22 KiB
+  - avg p-value: 0.497577, pass-rate: 99.40 %
+
+[100000 bit] XORShift32 | Linear Complexity Test
+  - gen:  13.09 ms, peak 115.34 KiB
+  - test: 27.54 ms, peak 9.60 KiB
+  - avg p-value: 0.511478, pass-rate: 98.40 %
+
+[100000 bit] XORShift32 | Runs Test
+  - gen:  13.09 ms, peak 115.34 KiB
+  - test: 0.06 ms, peak 162.67 KiB
+  - avg p-value: 0.460672, pass-rate: 98.80 %
+
+[100000 bit] XORShift32 | Spectral Test
+  - gen:  13.09 ms, peak 115.34 KiB
+  - test: 0.92 ms, peak 3907.80 KiB
+  - avg p-value: 0.502038, pass-rate: 99.20 %
+
+==================== Agregace podle tříd generátorů ====================
+[100000 bit] CSPRNG
+  - gen:  96.14 ms, peak 103.22 KiB
+  - test: 3.59 ms, peak 872.72 KiB
+  - avg p-value: 0.507505, pass-rate: 99.02 %
+
+[100000 bit] PR
+  - gen:  0.03 ms, peak 98.39 KiB
+  - test: 0.31 ms, peak 866.61 KiB
+  - avg p-value: 0.125000, pass-rate: 12.50 %
+
+[100000 bit] PRNG
+  - gen:  11.13 ms, peak 115.37 KiB
+  - test: 3.60 ms, peak 874.02 KiB
+  - avg p-value: 0.522623, pass-rate: 95.94 %
+
+[100000 bit] TRNG
+  - gen:  0.00 ms, peak 0.09 KiB
+  - test: 3.60 ms, peak 872.72 KiB
+  - avg p-value: 0.496231, pass-rate: 98.52 %
+
+CSV export:
+- outputs/benchmarks/output_benchmark-2026-04-14 15:58:46.943787-benchmark_metrics.csv
+- outputs/benchmarks/output_benchmark-2026-04-14 15:58:46.943787-benchmark_class_summary.csv

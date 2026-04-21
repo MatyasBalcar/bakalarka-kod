@@ -1,3 +1,7 @@
+"""
+Tenhle modul obsahuje vsechny generatory
+"""
+
 import hashlib
 import importlib
 import os

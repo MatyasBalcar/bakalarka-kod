@@ -1,34 +1,39 @@
 # Testování náhodnosti bitových posloupností
 
-Projekt porovnává generátory bitů (PRNG, CSPRNG, TRNG) pomocí statistických testů.
-Aplikace podporuje režimy `cherry-pick` a `benchmark`.
+Projekt porovnává generátory bitů (PRNG, CSPRNG, TRNG) pomocí statistických testů. Aplikace podporuje režimy `cherry-pick` a `benchmark`.
 
 ## Požadavky
 - Python 3.10+
 
 ## Instalace
+Základní závislosti:
 ```bash
-pip install numpy scipy numba tqdm sounddevice
+pip install numpy scipy numba tqdm
 ```
 
-Balíček `sounddevice` je potřeba pouze pro `Ambient Noise Generator`.
+Volitelně (pouze pro `Ambient Noise Generator`):
+```bash
+pip install sounddevice
+```
 
 ## Spuštění
 ```bash
 python main.py
 ```
 
+Běh aplikace je řízen souborem `config.json`.
+
 ## Režimy běhu
 
 ### `cherry-pick`
-- interaktivní výběr testů a generátorů,
-- vyhodnocení nad `sample_iter` vzorky o délce `sample_size` bitů,
-- výstup do textového reportu a CSV (`metrics`, `summary`).
+- Interaktivní výběr testů a generátorů.
+- Vyhodnocení nad `sample_iter` vzorky o délce `sample_size` bitů.
+- Export výsledků do textového reportu a CSV souborů (`metrics`, `summary`).
 
 ### `benchmark`
-- dávkové měření času, paměti, p-hodnot a pass-rate,
-- běh přes všechny generátory, velikosti vzorků a opakování,
-- export metrik po testech a agregace podle třídy generátoru.
+- Dávkové měření výkonu a výsledků testů (čas, paměť, p-hodnoty, `pass_rate`).
+- Spuštění přes všechny generátory, velikosti vzorků a opakování dle konfigurace.
+- Export metrik po testech a agregace podle třídy generátoru.
 
 ## Generátory
 
@@ -49,22 +54,23 @@ python main.py
 - `Repeating Generator`
 
 ## Ambientní data
-`Ambient Noise Generator` pracuje s daty z mikrofonu:
-1. načtení audio rámců (`int16`),
-2. extrakce LSB,
-3. bělení (`none`, `von-neumann`, `sha256`, `von-neumann+sha256`),
-4. vytvoření výstupní bitové posloupnosti.
 
-Data se ukládají do `inputs/audio` jako `.bin` soubory.
-Jeden soubor odpovídá jednomu vzorku pro testování.
+`Ambient Noise Generator` pracuje s daty z mikrofonu:
+1. Načtení audio rámců (`int16`).
+2. Extrakce LSB.
+3. Bělení (`none`, `von-neumann`, `sha256`, `von-neumann+sha256`).
+4. Sestavení výstupní bitové posloupnosti.
+
+Data se ukládají do `inputs/audio` jako `.bin` soubory. Jeden soubor odpovídá jednomu vzorku pro testování.
 
 ## Konfigurace (`config.json`)
+
 Podporované klíče:
 - `mode`: `cherry-pick` nebo `benchmark`
 - `sample_size`: délka jednoho vzorku v bitech
-- `sample_iter`: počet vzorků v `cherry-pick`
+- `sample_iter`: počet vzorků v režimu `cherry-pick`
 - `alpha`: hladina významnosti testů
-- `bayes_pass_threshold`: práh pro Bayes verdikt
+- `bayes_pass_threshold`: rozhodovací práh pro Bayes verdikt (viz „Interpretace metrik“)
 - `output_dir`: kořen výstupních souborů
 - `benchmark_sample_sizes`: seznam délek vzorků pro `benchmark`
 - `benchmark_repeats`: počet opakování na kombinaci
@@ -90,11 +96,12 @@ Aktuální příklad konfigurace:
 ```
 
 ## Výstupy
-Výstupy se ukládají do `outputs/<Generator Name>/`.
+
+Výstupy se ukládají do `outputs/<Generator Name>/`, a ty použité v práci jsou uloženy ve složkách s jejich parametry, tedy například 500*1000000.
 
 ### Textový report
 - `output_<mode>-<timestamp>.txt`
-- obsahuje konfiguraci běhu, metriky testů, verdikty a agregované souhrny.
+- Obsahuje konfiguraci běhu, metriky testů, verdikty a agregované souhrny.
 
 ### CSV (`cherry-pick`)
 - `...-cherry_pick_metrics.csv`
@@ -106,23 +113,25 @@ Výstupy se ukládají do `outputs/<Generator Name>/`.
 - `pass_posterior_chance`
 - `classical_randomness_chance`, `classical_fail_chance`
 - `bayes_randomness_chance`, `bayes_fail_chance`
-- `verdict` (pass-rate/NIST), `bayes_verdict`
+- `verdict` (klasický verdikt na základě `pass_rate`), `bayes_verdict`
 
 `cherry_pick_summary.csv` obsahuje agregace přes testy pro obě větve:
 - classical (`avg_`, `geo_`, `min` přes testy),
 - bayes (`avg_`, `geo_`, `min` přes testy).
 
-Pole `randomness_chance` a `fail_chance` jsou zachována jako kompatibilní aliasy Bayes větve.
+Pole `randomness_chance` a `fail_chance` jsou ponechána jako kompatibilní aliasy pro Bayes větev.
 
 ### CSV (`benchmark`)
 - `...-benchmark_metrics.csv`
 - `...-benchmark_class_summary.csv`
 
 ## Interpretace metrik
-- Hlavní verdikt `PASS/FAIL` je určen přes `pass_rate` vůči NIST proporčnímu prahu `min_pass_rate`.
-- Bayes verdikt je doplňkový a vychází z `bayes_randomness_chance` vůči `bayes_pass_threshold`.
+
+- Výsledky obsahují p-hodnoty, ukazatele uniformity a další souhrnné statistiky.
+- Klasický verdikt `PASS/FAIL` je určen porovnáním `pass_rate` s NIST proporčním prahem `min_pass_rate` (tj. minimální požadovaný podíl úspěchů napříč `sample_iter` iteracemi daného testu). Hodnota `min_pass_rate` je prahová hodnota definovaná metodikou NIST a typicky je odvozena z `alpha` a počtu iterací.
+- Bayesovský verdikt (`bayes_verdict`) je doplňkový a vychází z porovnání `bayes_randomness_chance` vůči `bayes_pass_threshold` (konfigurační práh v `config.json`).
 - `classical_randomness_chance = pass_rate`.
-- `bayes_randomness_chance = P(theta >= min_pass_rate | data)` při modelu Beta-Binomial s Jeffreys prior.
+- `bayes_randomness_chance = P(theta >= min_pass_rate | data)`, kde `data` reprezentuje počty úspěchů/neúspěchů testu napříč iteracemi; použit je model Beta-Binomial s Jeffreys prior.
 
 ## Implementované testy
 - Frequency (Monobit)
@@ -131,5 +140,5 @@ Pole `randomness_chance` a `fail_chance` jsou zachována jako kompatibilní alia
 - Autocorrelation
 - Spectral (DFT)
 - Linear Complexity
-- Diehard Birthday Spacings (inspirovaný)
-- Dieharder Byte Distribution (inspirovaný)
+- Diehard Birthday Spacings (implementace inspirovaná sadou Diehard)
+- Dieharder Byte Distribution (implementace inspirovaná sadou Dieharder)

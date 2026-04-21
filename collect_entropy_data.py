@@ -1,11 +1,6 @@
-"""Collect external entropy data and save it as a .bin file.
-
-Default source uses os.urandom (kernel CSPRNG seeded by system entropy).
-Optionally, you can use /dev/random for stronger blocking entropy behavior
-on Unix-like systems.
-
-For experimental TRNG workflows, source=mic captures ambient microphone noise,
-extracts low-order (LSB) bits, and can apply debiasing/conditioning.
+"""
+Tenhle modul sbira a upravuje data pro Audio Noise generator
+Data jsou ukladana do .bin souboru
 """
 
 import argparse
@@ -43,7 +38,6 @@ def _bytes_to_bits(data: bytes) -> np.ndarray:
 
 
 def von_neumann_extract(bits: np.ndarray) -> np.ndarray:
-    """Debias bitstream: 01->0, 10->1, discard 00/11."""
     if bits.size < 2:
         return np.array([], dtype=np.uint8)
 
@@ -58,7 +52,6 @@ def von_neumann_extract(bits: np.ndarray) -> np.ndarray:
 
 
 class MicrophoneEntropySource:
-    """Capture int16 audio frames from microphone and expose LSB bits."""
 
     def __init__(
             self,
@@ -122,7 +115,6 @@ class MicrophoneEntropySource:
 
 
 class MicrophoneEntropyPipeline:
-    """Mic entropy pipeline: capture -> extract LSB -> optional whitening."""
 
     def __init__(
             self,

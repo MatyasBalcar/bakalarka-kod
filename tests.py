@@ -1,3 +1,7 @@
+"""
+Tento modul obsahuje testy
+"""
+
 import time
 import tracemalloc
 from abc import ABC, abstractmethod
