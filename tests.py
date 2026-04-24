@@ -123,23 +123,23 @@ def fast_berlekamp_massey(block: np.ndarray) -> int:
     c = np.zeros(n, dtype=np.int32)
     b[0] = 1
     c[0] = 1
-    l = 0
+    linear_complexity = 0
     m = -1
 
     for i in range(n):
         d = 0
-        for j in range(l + 1):
+        for j in range(linear_complexity + 1):
             d ^= c[j] * block[i - j]
         if d == 1:
             t = np.copy(c)
             shift = i - m
             for j in range(n - shift):
                 c[j + shift] ^= b[j]
-            if 2 * l <= i:
-                l = i + 1 - l
+            if 2 * linear_complexity <= i:
+                linear_complexity = i + 1 - linear_complexity
                 m = i
                 b = t
-    return l
+    return linear_complexity
 
 
 class TestStrategy(ABC):
@@ -291,8 +291,8 @@ class LinearComplexityTest(TestStrategy):
         v = np.zeros(k + 1, dtype=int)
 
         for block in tqdm(blocks, desc="Počítání Linear Complexity", leave=False):
-            l = fast_berlekamp_massey(block)
-            t = (-1) ** m * (l - mu) + 2.0 / 9.0
+            linear_complexity = fast_berlekamp_massey(block)
+            t = (-1) ** m * (linear_complexity - mu) + 2.0 / 9.0
 
             if t <= -2.5:
                 v[0] += 1

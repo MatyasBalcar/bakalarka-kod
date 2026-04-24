@@ -4,6 +4,7 @@ Tenhle modul obsahuje vsechny generatory
 
 import hashlib
 import importlib
+import os
 from abc import ABC, abstractmethod
 from typing import Any
 
