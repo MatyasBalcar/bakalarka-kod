@@ -1,4 +1,4 @@
-Mode: cherry-pick
+Mode: single-source
 Ambient noise config: whitening=von-neumann+sha256, sample_rate=48000, hash_block_bytes=32
 
 Teoretická složitost testů:
@@ -124,6 +124,6 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
   => Odhad šance selhání (bayes): 0.4389 (0-1)
 
 CSV export:
-- outputs/XORShift32/output_cherry-pick-2026-04-13 17:32:26.857578-cherry_pick_metrics.csv
-- outputs/XORShift32/output_cherry-pick-2026-04-13 17:32:26.857578-cherry_pick_summary.csv
+- outputs/XORShift32/output_single-source-2026-04-13 17:32:26.857578-single_source_metrics.csv
+- outputs/XORShift32/output_single-source-2026-04-13 17:32:26.857578-single_source_summary.csv
 

@@ -17,13 +17,15 @@ import numpy as np
 from tqdm import tqdm
 
 from generators import (
+    AlternatingGenerator,
+    AmbientNoiseGenerator,
+    AudioSampleBatchGenerator,
+    BlumBlumShub,
     LCG,
     MersenneTwister,
     PCG64Wrapper,
+    RepeatingGenerator,
     XORShift32,
-    BlumBlumShub, RepeatingGenerator, AlternatingGenerator,
-    AmbientNoiseGenerator,
-    AudioSampleBatchGenerator,
 )
 from tests import (
     MonobitTest,
@@ -39,12 +41,6 @@ from tests import (
     evaluate_pvalues,
 )
 from ui import print_tests, print_generators, get_generator_with_index
-
-"""
-TODO
-graph the results
-table the results
-"""
 
 
 def profile_generator(generator, size_bits: int):
@@ -66,11 +62,11 @@ def write_complexity_section(file, tests_to_run):
     file.write("\n")
 
 
-def make_output_paths(output_txt_path: str, mode: str) -> dict:
+def make_output_paths(output_txt_path: str) -> dict:
     base = output_txt_path.rsplit(".", 1)[0]
     return {
-        "cherry_pick_metrics": f"{base}-cherry_pick_metrics.csv",
-        "cherry_pick_summary": f"{base}-cherry_pick_summary.csv",
+        "single_source_metrics": f"{base}-single_source_metrics.csv",
+        "single_source_summary": f"{base}-single_source_summary.csv",
         "benchmark_metrics": f"{base}-benchmark_metrics.csv",
         "benchmark_class": f"{base}-benchmark_class_summary.csv",
     }
@@ -264,7 +260,7 @@ def write_csv_rows(path: str, headers: list[str], rows: list[dict]):
         writer.writerows(rows)
 
 
-def run_cherry_pick_mode(
+def run_single_source_mode(
         generators,
         tests_to_run,
         sample_size: int,
@@ -274,8 +270,8 @@ def run_cherry_pick_mode(
         file,
         csv_paths: dict,
 ):
-    cherry_pick_rows = []
-    cherry_pick_summary_rows = []
+    single_source_rows = []
+    single_source_summary_rows = []
 
     note = (
         "Pozn.: Hlavni verdikt PASS/FAIL je podle pass-rate vuci NIST proportion prahu. "
@@ -311,7 +307,6 @@ def run_cherry_pick_mode(
         pass_rates_for_generator = []
 
         for _ in tqdm(range(num_samples), desc=f"Zpracování vzorků pro {gen_name}", leave=False):
-          # Use the same profiling path as benchmark mode so timings are directly comparable.
             sample_bits, sample_elapsed_sec, _ = profile_generator(generator, size_bits=sample_size)
             gen_times_ms.append(sample_elapsed_sec * 1000.0)
 
@@ -336,7 +331,7 @@ def run_cherry_pick_mode(
             avg_gen_time_ms = float(np.mean(gen_times_ms)) if gen_times_ms else 0.0
             avg_test_time_ms = float(np.mean(test_times_ms_by_test[test_name])) if test_times_ms_by_test[
                 test_name] else 0.0
-            cherry_pick_rows.append({
+            single_source_rows.append({
                 "generator": gen_name,
                 "generator_class": gen_class,
                 "test": test_name,
@@ -433,7 +428,7 @@ def run_cherry_pick_mode(
             else 0.0
         )
         generator_bayes_fail_chance = float(1.0 - generator_bayes_randomness_chance)
-        cherry_pick_summary_rows.append({
+        single_source_summary_rows.append({
             "generator": gen_name,
             "generator_class": getattr(generator, "generator_class", "UNKNOWN"),
             "pass_count": pass_count,
@@ -477,7 +472,7 @@ def run_cherry_pick_mode(
         file.write(generation_line)
 
     write_csv_rows(
-        csv_paths["cherry_pick_metrics"],
+        csv_paths["single_source_metrics"],
         [
             "generator", "generator_class", "test", "sample_size", "sample_iter",
             "pass_rate", "mean_p", "median_p", "stability_score", "final_score",
@@ -486,10 +481,10 @@ def run_cherry_pick_mode(
             "bayes_randomness_chance", "bayes_fail_chance",
             "randomness_chance", "fail_chance", "avg_gen_time_ms", "avg_test_time_ms", "verdict", "bayes_verdict",
         ],
-        cherry_pick_rows,
+        single_source_rows,
     )
     write_csv_rows(
-        csv_paths["cherry_pick_summary"],
+        csv_paths["single_source_summary"],
         [
             "generator", "generator_class", "pass_count", "total_tests", "pass_ratio",
             "pass_tests", "fail_tests", "avg_gen_time_ms", "avg_test_time_ms", "avg_final_score",
@@ -502,13 +497,13 @@ def run_cherry_pick_mode(
             "avg_randomness_chance", "geo_randomness_chance",
             "randomness_chance", "fail_chance",
         ],
-        cherry_pick_summary_rows,
+        single_source_summary_rows,
     )
 
     csv_info = (
         "CSV export:\n"
-        f"- {csv_paths['cherry_pick_metrics']}\n"
-        f"- {csv_paths['cherry_pick_summary']}\n"
+        f"- {csv_paths['single_source_metrics']}\n"
+        f"- {csv_paths['single_source_summary']}\n"
     )
     print(csv_info)
     file.write(csv_info)
@@ -661,12 +656,13 @@ if __name__ == "__main__":
     with open("config.json", "r", encoding="utf-8") as cfg_file:
         config = json.load(cfg_file)
 
-    # loading cfg
     SAMPLE_SIZE = int(config.get("sample_size", 1_000_000))
     NUM_SAMPLES = int(config.get("sample_iter", 100))
     OUTPUT_DIR = config.get("output_dir", "outputs")
-    MODE = config.get("mode", "cherry-pick").lower()
-    MODE = {"chery-pick": "cherry-pick", "cherry_pick": "cherry-pick"}.get(MODE, MODE)
+    MODE = config.get("mode", "single-source").lower()
+    MODE = {
+        "single_source": "single-source",
+    }.get(MODE, MODE)
     ALPHA = float(config.get("alpha", 0.01))
     BAYES_PASS_THRESHOLD = float(config.get("bayes_pass_threshold", 0.95))
     BENCHMARK_SIZES = config.get("benchmark_sample_sizes", [10000, 100000, 1000000])
@@ -713,7 +709,7 @@ if __name__ == "__main__":
 
     generators = all_generators
     tests_to_run = all_tests
-    cherry_pick_runs = []
+    single_source_runs = []
 
     try:
         if MODE == "benchmark":
@@ -735,7 +731,7 @@ if __name__ == "__main__":
                     warn_on_short_sample=True,
                 )
 
-        if MODE == "cherry-pick":
+        if MODE == "single-source":
             print_generators(all_generators)
             selected_generator_name, selected_generator = get_generator_with_index(all_generators)
             if selected_generator_name is None:
@@ -767,7 +763,7 @@ if __name__ == "__main__":
                             f"{metadata['folder_path']} ({len(metadata['files'])} files)"
                         )
 
-                    cherry_pick_runs.append({
+                    single_source_runs.append({
                         "name": gen_name,
                         "generator": run_generator,
                         "num_samples": run_num_samples,
@@ -799,7 +795,7 @@ if __name__ == "__main__":
                         f"{metadata['folder_path']} ({len(metadata['files'])} files)"
                     )
 
-                cherry_pick_runs.append({
+                single_source_runs.append({
                     "name": selected_generator_name,
                     "generator": selected_generator,
                     "num_samples": run_num_samples,
@@ -813,7 +809,7 @@ if __name__ == "__main__":
         mode_output_dir = os.path.join(OUTPUT_DIR, "benchmarks")
         os.makedirs(mode_output_dir, exist_ok=True)
         OUTPUT_FILE = os.path.join(mode_output_dir, f"output_{MODE}-{run_stamp}.txt")
-        CSV_PATHS = make_output_paths(OUTPUT_FILE, MODE)
+        CSV_PATHS = make_output_paths(OUTPUT_FILE)
 
         with open(OUTPUT_FILE, "w", encoding="utf-8") as file:
             file.write(f"Mode: {MODE}\n")
@@ -837,20 +833,20 @@ if __name__ == "__main__":
             )
 
         print(f"\nVýsledky byly úspěšně uloženy do: {OUTPUT_FILE}")
-    elif MODE == "cherry-pick":
-        if not cherry_pick_runs:
-            print("Cherry-pick režim nemá žádný generátor ke spuštění.")
+    elif MODE == "single-source":
+        if not single_source_runs:
+            print("Single-source režim nemá žádný generátor ke spuštění.")
             sys.exit(1)
 
         output_files = []
-        for run_cfg in cherry_pick_runs:
+        for run_cfg in single_source_runs:
             gen_name = run_cfg["name"]
             mode_output_dir = os.path.join(OUTPUT_DIR, gen_name)
             os.makedirs(mode_output_dir, exist_ok=True)
 
             per_run_stamp = str(datetime.datetime.now())
             output_file = os.path.join(mode_output_dir, f"output_{MODE}-{per_run_stamp}.txt")
-            csv_paths = make_output_paths(output_file, MODE)
+            csv_paths = make_output_paths(output_file)
 
             with open(output_file, "w", encoding="utf-8") as file:
                 file.write(f"Mode: {MODE}\n")
@@ -864,7 +860,7 @@ if __name__ == "__main__":
                 file.write("\n")
 
                 write_complexity_section(file, tests_to_run)
-                run_cherry_pick_mode(
+                run_single_source_mode(
                     generators={gen_name: run_cfg["generator"]},
                     tests_to_run=tests_to_run,
                     sample_size=SAMPLE_SIZE,
@@ -881,5 +877,5 @@ if __name__ == "__main__":
         for path in output_files:
             print(f"- {path}")
     else:
-        print(f"Neznámý režim: {MODE}. Použij 'benchmark' nebo 'cherry-pick'.")
+        print(f"Neznámý režim: {MODE}. Použij 'benchmark' nebo 'single-source'.")
         sys.exit(1)

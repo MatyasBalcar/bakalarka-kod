@@ -41,10 +41,10 @@ def execute_with_metrics(test: "TestStrategy", bits: np.ndarray, alpha: float = 
 
 
 def evaluate_pvalues(
-    p_values: list[float],
-    alpha: float,
-    min_pass_rate: float,
-    bayes_pass_threshold: float = 0.95,
+        p_values: list[float],
+        alpha: float,
+        min_pass_rate: float,
+        bayes_pass_threshold: float = 0.95,
 ) -> dict:
     """Agreguje kvalitu testu nad sadou p-hodnot pro jeden generátor."""
     if not p_values:
@@ -384,4 +384,3 @@ class DieharderByteDistributionTest(TestStrategy):
         chi_squared = np.sum((obs - expected) ** 2 / expected)
 
         return float(spc.gammaincc((256 - 1) / 2.0, chi_squared / 2.0))
-

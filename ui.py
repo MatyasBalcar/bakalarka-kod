@@ -1,6 +1,7 @@
 """
-Tento modul ridi uzivatelske rozhrsni
+Tento modul ridi uzivatelske rozhrani
 """
+
 
 def print_tests(tests):
     i = 0
@@ -17,7 +18,7 @@ def print_generators(generators):
 
 def get_generator_with_index(generators):
     data = input(
-        "Enter generator id to run in cherry-pick mode: eg. 0\nPress [Enter] to run all generators separately\n")
+        "Enter generator id to run in single-source mode: eg. 0\nPress [Enter] to run all generators separately\n")
     if data.strip() == "":
         return None, None
 
@@ -28,15 +29,3 @@ def get_generator_with_index(generators):
 
     name = names[index]
     return name, generators[name]
-
-
-def get_tests_with_indexes(tests):
-    data = input("Enter id's of tests to use: eg. 0,1,3\nPress [Enter] to run all tests")
-    indexes = []
-    if data.strip() == "":
-        indexes = range(len(tests))
-    else:
-        indexes = list(map(int, data.split(",")))
-    if (min(indexes) < 0) or (max(indexes) > (len(tests) - 1)):
-        raise Exception("Index out of range")
-    return [tests[i] for i in indexes]

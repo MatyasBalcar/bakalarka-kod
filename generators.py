@@ -4,7 +4,6 @@ Tenhle modul obsahuje vsechny generatory
 
 import hashlib
 import importlib
-import os
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -321,7 +320,6 @@ class AmbientNoiseGenerator(Generator):
 
 
 class LCG(Generator):
-    # * PRNG
     generator_class = "PRNG"
 
     def __init__(self, seed: int, a: int = 1664525, c: int = 1013904223, m: int = 2 ** 32):
@@ -343,7 +341,6 @@ class LCG(Generator):
 
 
 class MersenneTwister(Generator):
-    # * PRNG
     generator_class = "PRNG"
 
     _N = 624
@@ -400,7 +397,6 @@ class MersenneTwister(Generator):
 
 
 class PCG64Wrapper(Generator):
-    # * PRNG [CONTROL, NOT IMPLEMENTED]
     generator_class = "PRNG"
 
     def __init__(self, seed: int):
@@ -413,7 +409,6 @@ class PCG64Wrapper(Generator):
 
 
 class XORShift32(Generator):
-    # * PRNG
     generator_class = "PRNG"
 
     def __init__(self, seed: int):
@@ -437,18 +432,7 @@ class XORShift32(Generator):
         return np.unpackbits(results.view(np.uint8))[:size_bits]
 
 
-class OSUrandomGenerator(Generator):
-    # * CSPRNG [CONTROL, NOT IMPLEMENTED]
-    generator_class = "CSPRNG"
-
-    def generate(self, size_bits: int) -> np.ndarray:
-        size_bytes = (size_bits // 8) + 1
-        random_bytes = os.urandom(size_bytes)
-        return np.unpackbits(np.frombuffer(random_bytes, dtype=np.uint8))[:size_bits]
-
-
 class BlumBlumShub(Generator):
-    # * CSPRNG
     generator_class = "CSPRNG"
 
     def __init__(self, p: int, q: int, seed: int):
@@ -470,7 +454,6 @@ class AlternatingGenerator(Generator):
     Produkuje porad 1010101....
     Ale presto projde nejake testy (frequency a block frequency), ostatni fail"""
 
-    # * [NOT A REAL GENERATOR]
     generator_class = "PR"
 
     def __init__(self, seed: int):
@@ -485,7 +468,6 @@ class RepeatingGenerator(Generator):
     """
     Opakuje stejnou hodnotu stale, tohle uz failne vsechno
     """
-    # * [NOT A REAL GENERATOR]
     generator_class = "PR"
 
     def __init__(self, seed: int):

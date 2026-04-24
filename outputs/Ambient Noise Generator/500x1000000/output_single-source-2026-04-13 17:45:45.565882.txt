@@ -1,4 +1,4 @@
-Mode: cherry-pick
+Mode: single-source
 Ambient noise config: whitening=von-neumann+sha256, sample_rate=48000, hash_block_bytes=32
 Ambient audio dataset: inputs/audio (500 files)
 
@@ -125,6 +125,6 @@ Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
   => Odhad šance selhání (bayes): 0.6672 (0-1)
 
 CSV export:
-- outputs/Ambient Noise Generator/output_cherry-pick-2026-04-13 17:45:45.565882-cherry_pick_metrics.csv
-- outputs/Ambient Noise Generator/output_cherry-pick-2026-04-13 17:45:45.565882-cherry_pick_summary.csv
+- outputs/Ambient Noise Generator/output_single-source-2026-04-13 17:45:45.565882-single_source_metrics.csv
+- outputs/Ambient Noise Generator/output_single-source-2026-04-13 17:45:45.565882-single_source_summary.csv
 
