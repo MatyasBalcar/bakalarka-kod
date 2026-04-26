@@ -4,10 +4,8 @@ Tento modul ridi uzivatelske rozhrani
 
 
 def print_tests(tests):
-    i = 0
-    for test in tests:
-        print(f"{i}. {test}")
-        i += 1
+    for test_index, test in enumerate(tests):
+        print(f"{test_index}. {test}")
 
 
 def print_generators(generators):
@@ -17,15 +15,15 @@ def print_generators(generators):
 
 
 def get_generator_with_index(generators):
-    data = input(
+    selected_input = input(
         "Enter generator id to run in single-source mode: eg. 0\nPress [Enter] to run all generators separately\n")
-    if data.strip() == "":
+    if selected_input.strip() == "":
         return None, None
 
-    index = int(data.strip())
-    names = list(generators.keys())
-    if index < 0 or index >= len(names):
+    selected_index = int(selected_input.strip())
+    generator_names = list(generators.keys())
+    if selected_index < 0 or selected_index >= len(generator_names):
         raise Exception("Generator index out of range")
 
-    name = names[index]
-    return name, generators[name]
+    generator_name = generator_names[selected_index]
+    return generator_name, generators[generator_name]

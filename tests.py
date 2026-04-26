@@ -23,11 +23,11 @@ TEST_COMPLEXITY = {
 }
 
 
-def execute_with_metrics(test: "TestStrategy", bits: np.ndarray, alpha: float = 0.01) -> dict:
+def execute_with_metrics(test_strategy: "TestStrategy", bits: np.ndarray, alpha: float = 0.01) -> dict:
     """Vrátí p-value + metriky výkonu pro jeden běh testu."""
     tracemalloc.start()
     start = time.perf_counter()
-    p_value = test.execute(bits)
+    p_value = test_strategy.execute(bits)
     elapsed = time.perf_counter() - start
     _, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
@@ -64,26 +64,22 @@ def evaluate_pvalues(
             "verdict": "FAIL",
         }
 
-    arr = np.array(p_values, dtype=float)
-    pass_rate = float(np.mean(arr >= alpha))
-    mean_p = float(np.mean(arr))
-    median_p = float(np.median(arr))
+    p_value_array = np.array(p_values, dtype=float)
+    pass_rate = float(np.mean(p_value_array >= alpha))
+    mean_p = float(np.mean(p_value_array))
+    median_p = float(np.median(p_value_array))
 
-    # Uniformni p-hodnoty maji sigma ~= 0.288675; cim mensi odchylka, tim lepsi stabilita.
     sigma_u01 = 1.0 / np.sqrt(12.0)
-    stability_score = float(max(0.0, min(1.0, 1.0 - (np.std(arr) / sigma_u01))))
+    stability_score = float(max(0.0, min(1.0, 1.0 - (np.std(p_value_array) / sigma_u01))))
 
     final_score = float(0.6 * pass_rate + 0.25 * mean_p + 0.15 * stability_score)
 
-    # 1) Bayesovsky: posteriorni pravdepodobnost, ze skutecna uspesnost testu
-    # je alespon min_pass_rate pri modelu Bernoulli(pruchod/nepruchod).
-    # Prior: Jeffreys Beta(0.5, 0.5), posterior: Beta(k+0.5, n-k+0.5).
-    n = arr.size
-    k = int(np.sum(arr >= alpha))
-    a_post = k + 0.5
-    b_post = (n - k) + 0.5
+    sample_count = p_value_array.size
+    passed_count = int(np.sum(p_value_array >= alpha))
+    alpha_posterior = passed_count + 0.5
+    beta_posterior = (sample_count - passed_count) + 0.5
     threshold = float(np.clip(min_pass_rate, 0.0, 1.0))
-    pass_posterior_chance = float(1.0 - spc.betainc(a_post, b_post, threshold))
+    pass_posterior_chance = float(1.0 - spc.betainc(alpha_posterior, beta_posterior, threshold))
     pass_posterior_chance = float(np.clip(pass_posterior_chance, 0.0, 1.0))
 
     classical_randomness_chance = pass_rate
@@ -92,7 +88,6 @@ def evaluate_pvalues(
     bayes_randomness_chance = pass_posterior_chance
     bayes_fail_chance = float(1.0 - bayes_randomness_chance)
 
-    # Backward-compatible aliases keep existing CSV/report consumers functional.
     randomness_chance = bayes_randomness_chance
     fail_chance = bayes_fail_chance
     bayes_threshold = float(np.clip(bayes_pass_threshold, 0.0, 1.0))
@@ -118,27 +113,27 @@ def evaluate_pvalues(
 @njit
 def fast_berlekamp_massey(block: np.ndarray) -> int:
     """njit pro rychlost"""
-    n = len(block)
-    b = np.zeros(n, dtype=np.int32)
-    c = np.zeros(n, dtype=np.int32)
-    b[0] = 1
-    c[0] = 1
+    sequence_length = len(block)
+    previous_connection = np.zeros(sequence_length, dtype=np.int32)
+    connection = np.zeros(sequence_length, dtype=np.int32)
+    previous_connection[0] = 1
+    connection[0] = 1
     linear_complexity = 0
-    m = -1
+    last_update_index = -1
 
-    for i in range(n):
-        d = 0
-        for j in range(linear_complexity + 1):
-            d ^= c[j] * block[i - j]
-        if d == 1:
-            t = np.copy(c)
-            shift = i - m
-            for j in range(n - shift):
-                c[j + shift] ^= b[j]
-            if 2 * linear_complexity <= i:
-                linear_complexity = i + 1 - linear_complexity
-                m = i
-                b = t
+    for bit_index in range(sequence_length):
+        discrepancy = 0
+        for coefficient_index in range(linear_complexity + 1):
+            discrepancy ^= connection[coefficient_index] * block[bit_index - coefficient_index]
+        if discrepancy == 1:
+            previous_connection_snapshot = np.copy(connection)
+            shift = bit_index - last_update_index
+            for coefficient_index in range(sequence_length - shift):
+                connection[coefficient_index + shift] ^= previous_connection[coefficient_index]
+            if 2 * linear_complexity <= bit_index:
+                linear_complexity = bit_index + 1 - linear_complexity
+                last_update_index = bit_index
+                previous_connection = previous_connection_snapshot
     return linear_complexity
 
 
@@ -152,11 +147,6 @@ class TestStrategy(ABC):
         pass
 
 
-# ============================
-# * NIST
-# ============================
-
-
 class MonobitTest(TestStrategy):
     """Frequency (Monobit) test.
 
@@ -168,10 +158,10 @@ class MonobitTest(TestStrategy):
     """
 
     def execute(self, bits: np.ndarray) -> float:
-        n = len(bits)
-        x = 2 * bits.astype(int) - 1
-        s_obs = np.abs(np.sum(x)) / np.sqrt(n)
-        return spc.erfc(s_obs / np.sqrt(2))
+        sequence_length = len(bits)
+        mapped_bits = 2 * bits.astype(int) - 1
+        observed_statistic = np.abs(np.sum(mapped_bits)) / np.sqrt(sequence_length)
+        return spc.erfc(observed_statistic / np.sqrt(2))
 
 
 class RunsTest(TestStrategy):
@@ -185,17 +175,17 @@ class RunsTest(TestStrategy):
     """
 
     def execute(self, bits: np.ndarray) -> float:
-        n = len(bits)
-        pi = np.sum(bits) / n
-        tau = 2.0 / np.sqrt(n)
+        sequence_length = len(bits)
+        one_ratio = np.sum(bits) / sequence_length
+        balance_threshold = 2.0 / np.sqrt(sequence_length)
 
-        if abs(pi - 0.5) >= tau:
+        if abs(one_ratio - 0.5) >= balance_threshold:
             return 0.0000
 
-        v_n_obs = np.sum(bits[:-1] != bits[1:]) + 1
-        num = abs(v_n_obs - 2 * n * pi * (1 - pi))
-        den = 2 * np.sqrt(2 * n) * pi * (1 - pi)
-        return spc.erfc(num / den)
+        observed_run_count = np.sum(bits[:-1] != bits[1:]) + 1
+        numerator = abs(observed_run_count - 2 * sequence_length * one_ratio * (1 - one_ratio))
+        denominator = 2 * np.sqrt(2 * sequence_length) * one_ratio * (1 - one_ratio)
+        return spc.erfc(numerator / denominator)
 
 
 class BlockFrequencyTest(TestStrategy):
@@ -210,15 +200,15 @@ class BlockFrequencyTest(TestStrategy):
     """
 
     def execute(self, bits: np.ndarray, block_size: int = 128) -> float:
-        n = len(bits)
-        if n < block_size:
+        sequence_length = len(bits)
+        if sequence_length < block_size:
             return 0.0
 
-        n_blocks = n // block_size
-        blocks = np.reshape(bits[:n_blocks * block_size], (n_blocks, block_size))
-        pi = np.mean(blocks, axis=1)
-        chi_squared = 4.0 * block_size * np.sum((pi - 0.5) ** 2)
-        return spc.gammaincc(n_blocks / 2.0, chi_squared / 2.0)
+        block_count = sequence_length // block_size
+        blocks = np.reshape(bits[:block_count * block_size], (block_count, block_size))
+        block_one_ratios = np.mean(blocks, axis=1)
+        chi_squared = 4.0 * block_size * np.sum((block_one_ratios - 0.5) ** 2)
+        return spc.gammaincc(block_count / 2.0, chi_squared / 2.0)
 
 
 class AutocorrelationTest(TestStrategy):
@@ -232,16 +222,16 @@ class AutocorrelationTest(TestStrategy):
     - 0.0 pokud je vstup kratší nebo stejně dlouhý jako lag d.
     """
 
-    def execute(self, bits: np.ndarray, d: int = 1) -> float:
-        n = len(bits)
-        if n <= d:
+    def execute(self, bits: np.ndarray, lag: int = 1) -> float:
+        sequence_length = len(bits)
+        if sequence_length <= lag:
             return 0.0
 
-        disagreements = np.sum(bits[: n - d] != bits[d:])
-        expected = (n - d) / 2.0
-        variance = (n - d) / 4.0
-        z = (disagreements - expected) / np.sqrt(variance)
-        return spc.erfc(abs(z) / np.sqrt(2.0))
+        disagreement_count = np.sum(bits[: sequence_length - lag] != bits[lag:])
+        expected_disagreements = (sequence_length - lag) / 2.0
+        variance = (sequence_length - lag) / 4.0
+        z_score = (disagreement_count - expected_disagreements) / np.sqrt(variance)
+        return spc.erfc(abs(z_score) / np.sqrt(2.0))
 
 
 class SpectralTest(TestStrategy):
@@ -255,16 +245,19 @@ class SpectralTest(TestStrategy):
     """
 
     def execute(self, bits: np.ndarray) -> float:
-        n = len(bits)
-        x = 2 * bits.astype(int) - 1
-        s = np.fft.fft(x)
-        modulus = np.abs(s[0:n // 2])
+        sequence_length = len(bits)
+        mapped_bits = 2 * bits.astype(int) - 1
+        spectrum = np.fft.fft(mapped_bits)
+        modulus = np.abs(spectrum[0:sequence_length // 2])
 
-        t_95 = np.sqrt(-n * np.log(0.05))
-        n_1 = np.sum(modulus < t_95)
-        n_0 = 0.95 * (n / 2)
-        d = (n_1 - n_0) / np.sqrt(n * 0.95 * 0.05 / 4)
-        return spc.erfc(abs(d) / np.sqrt(2))
+        threshold_95 = np.sqrt(-sequence_length * np.log(0.05))
+        peaks_below_threshold = np.sum(modulus < threshold_95)
+        expected_peaks_below_threshold = 0.95 * (sequence_length / 2)
+        normalized_difference = (
+                (peaks_below_threshold - expected_peaks_below_threshold)
+                / np.sqrt(sequence_length * 0.95 * 0.05 / 4)
+        )
+        return spc.erfc(abs(normalized_difference) / np.sqrt(2))
 
 
 class LinearComplexityTest(TestStrategy):
@@ -278,46 +271,48 @@ class LinearComplexityTest(TestStrategy):
     - 0.0 pokud je vstup kratší než velikost bloku m.
     """
 
-    def execute(self, bits: np.ndarray, m: int = 500) -> float:
-        n = len(bits)
-        if n < m:
+    def execute(self, bits: np.ndarray, block_size: int = 500) -> float:
+        sequence_length = len(bits)
+        if sequence_length < block_size:
             return 0.0
 
-        k = 6
-        n_blocks = n // m
-        blocks = np.reshape(bits[:n_blocks * m], (n_blocks, m))
+        category_count = 6
+        block_count = sequence_length // block_size
+        blocks = np.reshape(bits[:block_count * block_size], (block_count, block_size))
 
-        mu = m / 2.0 + (9 + (-1) ** (m + 1)) / 36.0 - (m / 3.0 + 2.0 / 9.0) / (2 ** m)
-        v = np.zeros(k + 1, dtype=int)
+        expected_mean = (
+                block_size / 2.0
+                + (9 + (-1) ** (block_size + 1)) / 36.0
+                - (block_size / 3.0 + 2.0 / 9.0) / (2 ** block_size)
+        )
+        category_histogram = np.zeros(category_count + 1, dtype=int)
 
         for block in tqdm(blocks, desc="Počítání Linear Complexity", leave=False):
             linear_complexity = fast_berlekamp_massey(block)
-            t = (-1) ** m * (linear_complexity - mu) + 2.0 / 9.0
+            centered_value = (-1) ** block_size * (linear_complexity - expected_mean) + 2.0 / 9.0
 
-            if t <= -2.5:
-                v[0] += 1
-            elif t <= -1.5:
-                v[1] += 1
-            elif t <= -0.5:
-                v[2] += 1
-            elif t <= 0.5:
-                v[3] += 1
-            elif t <= 1.5:
-                v[4] += 1
-            elif t <= 2.5:
-                v[5] += 1
+            if centered_value <= -2.5:
+                category_histogram[0] += 1
+            elif centered_value <= -1.5:
+                category_histogram[1] += 1
+            elif centered_value <= -0.5:
+                category_histogram[2] += 1
+            elif centered_value <= 0.5:
+                category_histogram[3] += 1
+            elif centered_value <= 1.5:
+                category_histogram[4] += 1
+            elif centered_value <= 2.5:
+                category_histogram[5] += 1
             else:
-                v[6] += 1
+                category_histogram[6] += 1
 
-        pi = np.array([0.010417, 0.03125, 0.125, 0.5, 0.25, 0.0625, 0.020833])
-        chi_squared = np.sum(((v - n_blocks * pi) ** 2) / (n_blocks * pi))
+        category_probabilities = np.array([0.010417, 0.03125, 0.125, 0.5, 0.25, 0.0625, 0.020833])
+        chi_squared = np.sum(
+            ((category_histogram - block_count * category_probabilities) ** 2)
+            / (block_count * category_probabilities)
+        )
 
-        return spc.gammaincc(k / 2.0, chi_squared / 2.0)
-
-
-# ============================
-# * Diehard / Dieharder pouze obdobne testy, neni to original
-# ============================
+        return spc.gammaincc(category_count / 2.0, chi_squared / 2.0)
 
 
 class DiehardBirthdaySpacingsTest(TestStrategy):
@@ -332,14 +327,13 @@ class DiehardBirthdaySpacingsTest(TestStrategy):
     """
 
     def execute(self, bits: np.ndarray, n_samples: int = 512, bits_per_sample: int = 24) -> float:
-        required = n_samples * bits_per_sample
-        if len(bits) < required:
+        required_bits = n_samples * bits_per_sample
+        if len(bits) < required_bits:
             return 0.0
 
-        # Převedeme bloky bitů na čísla v intervalu [0, 2^bits_per_sample).
-        raw = bits[:required].reshape(n_samples, bits_per_sample)
+        sample_bit_matrix = bits[:required_bits].reshape(n_samples, bits_per_sample)
         weights = (1 << np.arange(bits_per_sample - 1, -1, -1, dtype=np.int64))
-        birthdays = (raw.astype(np.int64) * weights).sum(axis=1)
+        birthdays = (sample_bit_matrix.astype(np.int64) * weights).sum(axis=1)
 
         birthdays.sort()
         spacings = np.diff(birthdays)
@@ -349,13 +343,13 @@ class DiehardBirthdaySpacingsTest(TestStrategy):
         _, counts = np.unique(spacings, return_counts=True)
         collisions = np.sum(np.maximum(counts - 1, 0))
 
-        m = float(2 ** bits_per_sample)
-        lam = (n_samples ** 3) / (4.0 * m)
-        if lam <= 0:
+        sample_space_size = float(2 ** bits_per_sample)
+        expected_collision_count = (n_samples ** 3) / (4.0 * sample_space_size)
+        if expected_collision_count <= 0:
             return 0.0
 
-        z = (collisions - lam) / np.sqrt(lam)
-        return float(spc.erfc(abs(z) / np.sqrt(2.0)))
+        z_score = (collisions - expected_collision_count) / np.sqrt(expected_collision_count)
+        return float(spc.erfc(abs(z_score) / np.sqrt(2.0)))
 
 
 class DieharderByteDistributionTest(TestStrategy):
@@ -370,17 +364,17 @@ class DieharderByteDistributionTest(TestStrategy):
     """
 
     def execute(self, bits: np.ndarray) -> float:
-        n = len(bits)
-        n_bytes = n // 8
-        if n_bytes < 256:
+        sequence_length = len(bits)
+        byte_count = sequence_length // 8
+        if byte_count < 256:
             return 0.0
 
-        byte_bits = bits[:n_bytes * 8].reshape(n_bytes, 8)
+        byte_bits = bits[:byte_count * 8].reshape(byte_count, 8)
         weights = (1 << np.arange(7, -1, -1, dtype=np.int64))
         values = (byte_bits.astype(np.int64) * weights).sum(axis=1)
 
-        obs = np.bincount(values, minlength=256)
-        expected = n_bytes / 256.0
-        chi_squared = np.sum((obs - expected) ** 2 / expected)
+        observed_counts = np.bincount(values, minlength=256)
+        expected_count_per_value = byte_count / 256.0
+        chi_squared = np.sum((observed_counts - expected_count_per_value) ** 2 / expected_count_per_value)
 
         return float(spc.gammaincc((256 - 1) / 2.0, chi_squared / 2.0))

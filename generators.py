@@ -48,13 +48,13 @@ def _von_neumann_extract(bits: np.ndarray) -> np.ndarray:
     return kept[:, 0].astype(np.uint8)
 
 
-def _load_bits_from_bin_file(filepath: str) -> np.ndarray:
-    if not filepath.lower().endswith(".bin"):
+def _load_bits_from_bin_file(file_path: str) -> np.ndarray:
+    if not file_path.lower().endswith(".bin"):
         raise ValueError("Only .bin files are supported.")
-    byte_array = np.fromfile(filepath, dtype=np.uint8)
+    byte_array = np.fromfile(file_path, dtype=np.uint8)
     bits = np.unpackbits(byte_array, bitorder="big")
     if bits.size == 0:
-        raise ValueError(f"Input file is empty: {filepath}")
+        raise ValueError(f"Input file is empty: {file_path}")
     return bits.astype(np.uint8)
 
 
@@ -80,6 +80,9 @@ class AudioSampleBatchGenerator(Generator):
         self._bits_by_file = [_load_bits_from_bin_file(path) for path in filepaths]
         self._sample_cursor = 0
         self._warned_short_sample = False
+
+    def reset_samples(self) -> None:
+        self._sample_cursor = 0
 
     def generate(self, size_bits: int) -> np.ndarray:
         if size_bits <= 0:
@@ -323,22 +326,28 @@ class AmbientNoiseGenerator(Generator):
 class LCG(Generator):
     generator_class = "PRNG"
 
-    def __init__(self, seed: int, a: int = 1664525, c: int = 1013904223, m: int = 2 ** 32):
+    def __init__(
+            self,
+            seed: int,
+            multiplier: int = 1664525,
+            increment: int = 1013904223,
+            modulus: int = 2 ** 32,
+    ):
         self.state = seed
-        self.a = a
-        self.c = c
-        self.m = m
+        self.multiplier = multiplier
+        self.increment = increment
+        self.modulus = modulus
 
     def generate(self, size_bits: int) -> np.ndarray:
-        size_ints = (size_bits // 32) + 1
-        results = np.zeros(size_ints, dtype=np.uint32)
+        num_uint32_values = (size_bits // 32) + 1
+        generated_values = np.zeros(num_uint32_values, dtype=np.uint32)
 
-        for i in range(size_ints):
-            self.state = (self.a * self.state + self.c) % self.m
-            results[i] = self.state
+        for value_index in range(num_uint32_values):
+            self.state = (self.multiplier * self.state + self.increment) % self.modulus
+            generated_values[value_index] = self.state
 
-        bit_array = np.unpackbits(results.view(np.uint8))
-        return bit_array[:size_bits]
+        generated_bits = np.unpackbits(generated_values.view(np.uint8))
+        return generated_bits[:size_bits]
 
 
 class MersenneTwister(Generator):
@@ -364,37 +373,42 @@ class MersenneTwister(Generator):
         self._index = self._N
 
     def _twist(self) -> None:
-        for i in range(self._N):
-            x = (int(self._mt[i]) & self._UPPER_MASK) | (int(self._mt[(i + 1) % self._N]) & self._LOWER_MASK)
-            x_a = x >> 1
-            if x & 1:
-                x_a ^= self._MATRIX_A
-            self._mt[i] = np.uint32(int(self._mt[(i + self._M) % self._N]) ^ x_a)
+        for state_index in range(self._N):
+            mixed_bits = (
+                    (int(self._mt[state_index]) & self._UPPER_MASK)
+                    | (int(self._mt[(state_index + 1) % self._N]) & self._LOWER_MASK)
+            )
+            shifted_bits = mixed_bits >> 1
+            if mixed_bits & 1:
+                shifted_bits ^= self._MATRIX_A
+            self._mt[state_index] = np.uint32(
+                int(self._mt[(state_index + self._M) % self._N]) ^ shifted_bits
+            )
         self._index = 0
 
     def _next_uint32(self) -> np.uint32:
         if self._index >= self._N:
             self._twist()
 
-        y = int(self._mt[self._index])
+        tempered_value = int(self._mt[self._index])
         self._index += 1
 
-        y ^= y >> 11
-        y ^= (y << 7) & 0x9D2C5680
-        y ^= (y << 15) & 0xEFC60000
-        y ^= y >> 18
-        return np.uint32(y & 0xFFFFFFFF)
+        tempered_value ^= tempered_value >> 11
+        tempered_value ^= (tempered_value << 7) & 0x9D2C5680
+        tempered_value ^= (tempered_value << 15) & 0xEFC60000
+        tempered_value ^= tempered_value >> 18
+        return np.uint32(tempered_value & 0xFFFFFFFF)
 
     def generate(self, size_bits: int) -> np.ndarray:
         if size_bits <= 0:
             return np.array([], dtype=np.uint8)
 
-        size_ints = (size_bits + 31) // 32
-        values = np.empty(size_ints, dtype=np.uint32)
-        for i in range(size_ints):
-            values[i] = self._next_uint32()
+        num_uint32_values = (size_bits + 31) // 32
+        generated_values = np.empty(num_uint32_values, dtype=np.uint32)
+        for value_index in range(num_uint32_values):
+            generated_values[value_index] = self._next_uint32()
 
-        return np.unpackbits(values.view(np.uint8))[:size_bits]
+        return np.unpackbits(generated_values.view(np.uint8))[:size_bits]
 
 
 class PCG64Wrapper(Generator):
@@ -416,38 +430,38 @@ class XORShift32(Generator):
         self.state = np.uint32(seed if seed != 0 else 2463534242)
 
     def _next_uint32(self) -> np.uint32:
-        x = self.state
-        x ^= (x << np.uint32(13))
-        x ^= (x >> np.uint32(17))
-        x ^= (x << np.uint32(5))
-        self.state = np.uint32(x)
+        state_value = self.state
+        state_value ^= (state_value << np.uint32(13))
+        state_value ^= (state_value >> np.uint32(17))
+        state_value ^= (state_value << np.uint32(5))
+        self.state = np.uint32(state_value)
         return self.state
 
     def generate(self, size_bits: int) -> np.ndarray:
-        size_ints = (size_bits // 32) + 1
-        results = np.zeros(size_ints, dtype=np.uint32)
+        num_uint32_values = (size_bits // 32) + 1
+        generated_values = np.zeros(num_uint32_values, dtype=np.uint32)
 
-        for i in range(size_ints):
-            results[i] = self._next_uint32()
+        for value_index in range(num_uint32_values):
+            generated_values[value_index] = self._next_uint32()
 
-        return np.unpackbits(results.view(np.uint8))[:size_bits]
+        return np.unpackbits(generated_values.view(np.uint8))[:size_bits]
 
 
 class BlumBlumShub(Generator):
     generator_class = "CSPRNG"
 
     def __init__(self, p: int, q: int, seed: int):
-        self.n = p * q
-        self.state = seed % self.n
+        self.modulus = p * q
+        self.state = seed % self.modulus
 
     def generate(self, size_bits: int) -> np.ndarray:
-        results = np.zeros(size_bits, dtype=np.uint8)
+        generated_bits = np.zeros(size_bits, dtype=np.uint8)
 
-        for i in tqdm(range(size_bits), desc="Generování BBS", leave=False):
-            self.state = (self.state ** 2) % self.n
-            results[i] = self.state % 2
+        for bit_index in tqdm(range(size_bits), desc="Generování BBS", leave=False):
+            self.state = (self.state ** 2) % self.modulus
+            generated_bits[bit_index] = self.state % 2
 
-        return results
+        return generated_bits
 
 
 class AlternatingGenerator(Generator):

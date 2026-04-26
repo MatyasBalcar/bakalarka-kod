@@ -104,10 +104,7 @@ class MicrophoneEntropySource:
             self._stream = None
 
     def read_raw_lsb_bits(self) -> np.ndarray:
-        data, overflowed = self._stream.read(self.block_frames)
-        if overflowed:
-            # Continue; occasional overflow can happen on busy systems.
-            pass
+        data, _overflowed = self._stream.read(self.block_frames)
         flat = data.reshape(-1).astype(np.int16)
         unsigned = flat.astype(np.uint16)
         bits = np.bitwise_and(unsigned >> self.lsb_index, 1).astype(np.uint8)
@@ -245,7 +242,7 @@ def collect_entropy(
                 hash_block_bytes=hash_block_bytes,
             )
 
-        with open(output_file, "wb") as f:
+        with open(output_file, "wb") as output_handle:
             while written < total_bytes:
                 remaining = total_bytes - written
                 to_read = min(chunk_size, remaining)
@@ -258,7 +255,7 @@ def collect_entropy(
                 if not chunk:
                     raise RuntimeError("Entropy source returned no data.")
 
-                f.write(chunk)
+                output_handle.write(chunk)
                 hasher.update(chunk)
                 written += len(chunk)
 
@@ -266,8 +263,8 @@ def collect_entropy(
 
 
 def build_default_output_path() -> Path:
-    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-    return Path("inputs") / f"{ts}.bin"
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    return Path("inputs") / f"{timestamp}.bin"
 
 
 def parse_args() -> argparse.Namespace:
@@ -335,38 +332,38 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
-    args = parse_args()
+    cli_args = parse_args()
 
     try:
-        out_path = resolve_output_path(args.out)
+        out_path = resolve_output_path(cli_args.out)
         written, digest = collect_entropy(
             output_file=out_path,
-            total_bytes=args.bytes,
-            source=args.source,
-            overwrite=args.overwrite,
-            mic_sample_rate=args.sample_rate,
-            mic_channels=args.channels,
-            mic_block_frames=args.mic_block_frames,
-            mic_lsb_index=args.lsb_index,
-            whitening=args.whitening,
-            hash_block_bytes=args.hash_block_bytes,
-            mic_device=args.device,
+            total_bytes=cli_args.bytes,
+            source=cli_args.source,
+            overwrite=cli_args.overwrite,
+            mic_sample_rate=cli_args.sample_rate,
+            mic_channels=cli_args.channels,
+            mic_block_frames=cli_args.mic_block_frames,
+            mic_lsb_index=cli_args.lsb_index,
+            whitening=cli_args.whitening,
+            hash_block_bytes=cli_args.hash_block_bytes,
+            mic_device=cli_args.device,
         )
     except Exception as exc:
         print(f"ERROR: {exc}")
         return 1
 
     print("Entropy collection finished.")
-    print(f"Source: {args.source}")
+    print(f"Source: {cli_args.source}")
     print(f"Output: {out_path}")
     print(f"Bytes:  {written}")
     print(f"SHA256: {digest}")
-    if args.source == "mic":
+    if cli_args.source == "mic":
         print(
             "Mic params: "
-            f"sample_rate={args.sample_rate}, channels={args.channels}, "
-            f"block_frames={args.mic_block_frames}, lsb_index={args.lsb_index}, "
-            f"whitening={args.whitening}, hash_block_bytes={args.hash_block_bytes}, device={args.device}"
+            f"sample_rate={cli_args.sample_rate}, channels={cli_args.channels}, "
+            f"block_frames={cli_args.mic_block_frames}, lsb_index={cli_args.lsb_index}, "
+            f"whitening={cli_args.whitening}, hash_block_bytes={cli_args.hash_block_bytes}, device={cli_args.device}"
         )
     return 0
 

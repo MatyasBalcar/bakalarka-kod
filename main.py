@@ -14,6 +14,7 @@ from collections import defaultdict
 from typing import TypedDict
 
 import numpy as np
+import scipy.special as spc
 from tqdm import tqdm
 
 from generators import (
@@ -138,19 +139,19 @@ def generate_audio_bin_files(
         hash_block_bytes=hash_block_bytes,
         device=None,
     )
-    result = []
+    generated_paths = []
     try:
-        for i in tqdm(range(1, count + 1), desc="Nahrávání ambient datasetu", leave=False):
+        for sample_index in tqdm(range(1, count + 1), desc="Nahrávání ambient datasetu", leave=False):
             bits = generator.generate(sample_size_bits)
-            filename = f"ambient-{run_stamp}-{i:03d}.bin"
+            filename = f"ambient-{run_stamp}-{sample_index:03d}.bin"
             path = os.path.join(audio_dir, filename)
-            with open(path, "wb") as f:
-                f.write(np.packbits(bits.astype(np.uint8), bitorder="big").tobytes())
-            result.append(path)
+            with open(path, "wb") as output_handle:
+                output_handle.write(np.packbits(bits.astype(np.uint8), bitorder="big").tobytes())
+            generated_paths.append(path)
     finally:
         generator.close()
 
-    return result
+    return generated_paths
 
 
 def prepare_audio_dataset(
@@ -225,8 +226,7 @@ def prepare_audio_files_for_benchmark(
         repeats: int,
         audio_dir: str = AMBIENT_AUDIO_DIR,
 ) -> list[str]:
-    # Benchmark spotřebuje jeden soubor na každou kombinaci velikost x opakování.
-    required_count = len(sample_sizes) * repeats
+    required_count = repeats
     available_files = list_audio_bin_files(audio_dir)
 
     if len(available_files) < required_count:
@@ -237,16 +237,16 @@ def prepare_audio_files_for_benchmark(
         )
 
     selected_files = available_files[:required_count]
-    required_sizes = [size_bits for size_bits in sample_sizes for _ in range(repeats)]
+    max_required_size = max(sample_sizes) if sample_sizes else 0
 
-    for index, (path, size_bits) in enumerate(zip(selected_files, required_sizes), start=1):
-        required_bytes = (int(size_bits) + 7) // 8
+    for index, path in enumerate(selected_files, start=1):
+        required_bytes = (int(max_required_size) + 7) // 8
         actual_bytes = os.path.getsize(path)
         if actual_bytes < required_bytes:
             raise RuntimeError(
                 "Benchmark audio validation failed: "
                 f"soubor #{index} je příliš krátký ({path}). "
-                f"Potřeba >= {required_bytes} B pro {size_bits} bitů, "
+                f"Potřeba >= {required_bytes} B pro {max_required_size} bitů, "
                 f"nalezeno {actual_bytes} B."
             )
 
@@ -258,6 +258,52 @@ def write_csv_rows(path: str, headers: list[str], rows: list[dict]):
         writer = csv.DictWriter(csv_file, fieldnames=headers)
         writer.writeheader()
         writer.writerows(rows)
+
+
+def compute_pass_chances(
+        pass_count: int,
+        total_count: int,
+        alpha: float,
+        bayes_pass_threshold: float,
+) -> dict:
+    if total_count <= 0:
+        return {
+            "min_pass_rate": 0.0,
+            "classical_pass_chance": 0.0,
+            "classical_fail_chance": 1.0,
+            "bayes_pass_chance": 0.0,
+            "bayes_fail_chance": 1.0,
+            "passrate_verdict": "FAIL",
+            "bayes_verdict": "FAIL",
+        }
+
+    p_hat = 1.0 - alpha
+    limit = 3.0 * math.sqrt((p_hat * alpha) / total_count)
+    min_pass_rate = p_hat - limit
+
+    classical_pass_chance = float(pass_count / total_count)
+    classical_fail_chance = float(1.0 - classical_pass_chance)
+
+    a_post = pass_count + 0.5
+    b_post = (total_count - pass_count) + 0.5
+    threshold = float(np.clip(min_pass_rate, 0.0, 1.0))
+    bayes_pass_chance = float(1.0 - spc.betainc(a_post, b_post, threshold))
+    bayes_pass_chance = float(np.clip(bayes_pass_chance, 0.0, 1.0))
+    bayes_fail_chance = float(1.0 - bayes_pass_chance)
+
+    bayes_threshold = float(np.clip(bayes_pass_threshold, 0.0, 1.0))
+    passrate_verdict = "PASS" if classical_pass_chance >= min_pass_rate else "FAIL"
+    bayes_verdict = "PASS" if bayes_pass_chance >= bayes_threshold else "FAIL"
+
+    return {
+        "min_pass_rate": float(min_pass_rate),
+        "classical_pass_chance": classical_pass_chance,
+        "classical_fail_chance": classical_fail_chance,
+        "bayes_pass_chance": bayes_pass_chance,
+        "bayes_fail_chance": bayes_fail_chance,
+        "passrate_verdict": passrate_verdict,
+        "bayes_verdict": bayes_verdict,
+    }
 
 
 def run_single_source_mode(
@@ -301,7 +347,6 @@ def run_single_source_mode(
         test_times_ms_by_test = {name: [] for name, _ in tests_to_run}
         verdict_by_test = {}
         gen_times_ms = []
-        final_scores_for_generator = []
         classical_randomness_chances_for_generator = []
         bayes_randomness_chances_for_generator = []
         pass_rates_for_generator = []
@@ -340,22 +385,16 @@ def run_single_source_mode(
                 "pass_rate": metrics["pass_rate"],
                 "mean_p": metrics["mean_p"],
                 "median_p": metrics["median_p"],
-                "stability_score": metrics["stability_score"],
-                "final_score": metrics["final_score"],
-                "pass_posterior_chance": metrics["pass_posterior_chance"],
                 "classical_randomness_chance": metrics["classical_randomness_chance"],
                 "classical_fail_chance": metrics["classical_fail_chance"],
                 "bayes_randomness_chance": metrics["bayes_randomness_chance"],
                 "bayes_fail_chance": metrics["bayes_fail_chance"],
-                "randomness_chance": metrics["randomness_chance"],
-                "fail_chance": metrics["fail_chance"],
                 "avg_gen_time_ms": avg_gen_time_ms,
                 "avg_test_time_ms": avg_test_time_ms,
                 "verdict": passrate_verdict,
                 "bayes_verdict": bayes_verdict,
             })
             pass_rates_for_generator.append(metrics["pass_rate"])
-            final_scores_for_generator.append(metrics["final_score"])
             classical_randomness_chances_for_generator.append(metrics["classical_randomness_chance"])
             bayes_randomness_chances_for_generator.append(metrics["bayes_randomness_chance"])
 
@@ -363,7 +402,6 @@ def run_single_source_mode(
                 f"  {test_name}:\n"
                 f"   - Úspěšných vzorků: {pass_counts[test_name]}/{num_samples} ({metrics['pass_rate'] * 100:.2f} %)\n"
                 f"   - Mean p-value: {metrics['mean_p']:.6f}, Median p-value: {metrics['median_p']:.6f}\n"
-                f"   - Stability score: {metrics['stability_score']:.4f}, Final score: {metrics['final_score']:.4f}\n"
                 f"   - Pass posterior: {metrics['pass_posterior_chance']:.4f}\n"
                 f"   - Avg gen time: {avg_gen_time_ms:.2f} ms, Avg test time: {avg_test_time_ms:.2f} ms\n"
                 f"   - Odhad náhodnosti (classical): {metrics['classical_randomness_chance']:.4f}, "
@@ -395,7 +433,6 @@ def run_single_source_mode(
         avg_gen_time_ms = float(np.mean(gen_times_ms)) if gen_times_ms else 0.0
         all_test_timings = [t for values in test_times_ms_by_test.values() for t in values]
         avg_test_time_ms_all_tests = float(np.mean(all_test_timings)) if all_test_timings else 0.0
-        generator_avg_final_score = float(np.mean(final_scores_for_generator)) if final_scores_for_generator else 0.0
         generator_avg_pass_rate = float(np.mean(pass_rates_for_generator)) if pass_rates_for_generator else 0.0
         generator_avg_classical_randomness_chance = (
             float(np.mean(classical_randomness_chances_for_generator))
@@ -440,7 +477,6 @@ def run_single_source_mode(
             "fail_tests": "; ".join(fail_tests),
             "avg_gen_time_ms": avg_gen_time_ms,
             "avg_test_time_ms": avg_test_time_ms_all_tests,
-            "avg_final_score": generator_avg_final_score,
             "avg_pass_rate": generator_avg_pass_rate,
             "aggregation": "min_across_tests",
             "avg_classical_randomness_chance": generator_avg_classical_randomness_chance,
@@ -451,10 +487,6 @@ def run_single_source_mode(
             "geo_bayes_randomness_chance": generator_geo_bayes_randomness_chance,
             "bayes_randomness_chance": generator_bayes_randomness_chance,
             "bayes_fail_chance": generator_bayes_fail_chance,
-            "avg_randomness_chance": generator_avg_bayes_randomness_chance,
-            "geo_randomness_chance": generator_geo_bayes_randomness_chance,
-            "randomness_chance": generator_bayes_randomness_chance,
-            "fail_chance": generator_bayes_fail_chance,
         })
 
         generation_line = (
@@ -481,11 +513,10 @@ def run_single_source_mode(
         csv_paths["single_source_metrics"],
         [
             "generator", "generator_class", "test", "sample_size", "sample_iter",
-            "pass_rate", "mean_p", "median_p", "stability_score", "final_score",
-            "pass_posterior_chance",
+            "pass_rate", "mean_p", "median_p",
             "classical_randomness_chance", "classical_fail_chance",
             "bayes_randomness_chance", "bayes_fail_chance",
-            "randomness_chance", "fail_chance", "avg_gen_time_ms", "avg_test_time_ms", "verdict", "bayes_verdict",
+            "avg_gen_time_ms", "avg_test_time_ms", "verdict", "bayes_verdict",
         ],
         single_source_rows,
     )
@@ -493,15 +524,13 @@ def run_single_source_mode(
         csv_paths["single_source_summary"],
         [
             "generator", "generator_class", "pass_count", "total_tests", "pass_ratio",
-            "pass_tests", "fail_tests", "avg_gen_time_ms", "avg_test_time_ms", "avg_final_score",
+            "pass_tests", "fail_tests", "avg_gen_time_ms", "avg_test_time_ms",
             "avg_pass_rate",
             "aggregation",
             "avg_classical_randomness_chance", "geo_classical_randomness_chance",
             "classical_randomness_chance", "classical_fail_chance",
             "avg_bayes_randomness_chance", "geo_bayes_randomness_chance",
             "bayes_randomness_chance", "bayes_fail_chance",
-            "avg_randomness_chance", "geo_randomness_chance",
-            "randomness_chance", "fail_chance",
         ],
         single_source_summary_rows,
     )
@@ -517,7 +546,16 @@ def run_single_source_mode(
     file.write("\n")
 
 
-def run_benchmark_mode(generators, tests_to_run, sample_sizes, repeats: int, alpha: float, file, csv_paths: dict):
+def run_benchmark_mode(
+        generators,
+        tests_to_run,
+        sample_sizes,
+        repeats: int,
+        alpha: float,
+        bayes_pass_threshold: float,
+        file,
+        csv_paths: dict,
+):
     file.write("Benchmark režim: čas + paměť + p-value\n")
     file.write(f"Počet opakování na kombinaci: {repeats}\n")
     file.write(f"Testované velikosti: {sample_sizes}\n\n")
@@ -544,6 +582,8 @@ def run_benchmark_mode(generators, tests_to_run, sample_sizes, repeats: int, alp
 
     for gen_name, generator in generators.items():
         for size_bits in sample_sizes:
+            if isinstance(generator, AudioSampleBatchGenerator):
+                generator.reset_samples()
             for _ in tqdm(range(repeats), desc=f"Benchmark {gen_name} @ {size_bits}", leave=False):
                 sample_bits, gen_time, gen_peak = profile_generator(generator, size_bits=size_bits)
 
@@ -564,26 +604,39 @@ def run_benchmark_mode(generators, tests_to_run, sample_sizes, repeats: int, alp
 
                     gen_class = getattr(generator, "generator_class", "UNKNOWN")
                     class_key = (gen_class, size_bits)
-                    c_row = class_stats[class_key]
-                    c_row["count"] += 1
-                    c_row["gen_time_sum"] += gen_time
-                    c_row["gen_peak_sum"] += gen_peak
-                    c_row["test_time_sum"] += measured["elapsed_sec"]
-                    c_row["test_peak_sum"] += measured["peak_bytes"]
-                    c_row["p_value_sum"] += measured["p_value"]
-                    c_row["pass_sum"] += int(measured["passed"])
+                    class_row = class_stats[class_key]
+                    class_row["count"] += 1
+                    class_row["gen_time_sum"] += gen_time
+                    class_row["gen_peak_sum"] += gen_peak
+                    class_row["test_time_sum"] += measured["elapsed_sec"]
+                    class_row["test_peak_sum"] += measured["peak_bytes"]
+                    class_row["p_value_sum"] += measured["p_value"]
+                    class_row["pass_sum"] += int(measured["passed"])
 
     file.write("Výsledky benchmarku (průměry):\n")
     benchmark_rows = []
-    for gen_name, test_name, size_bits in sorted(stats.keys(), key=lambda x: (x[2], x[0], x[1])):
+    class_pass_summary = defaultdict(lambda: {
+        "classical_pass_values": [],
+        "bayes_pass_values": [],
+    })
+    for gen_name, test_name, size_bits in sorted(
+            stats.keys(),
+            key=lambda key_item: (key_item[2], key_item[0], key_item[1]),
+    ):
         row = stats[(gen_name, test_name, size_bits)]
-        c = row["count"]
-        avg_gen_ms = (row["gen_time_sum"] / c) * 1000.0
-        avg_test_ms = (row["test_time_sum"] / c) * 1000.0
-        avg_gen_kib = row["gen_peak_sum"] / c / 1024.0
-        avg_test_kib = row["test_peak_sum"] / c / 1024.0
-        pass_rate = row["pass_sum"] / c
-        avg_p = row["p_value_sum"] / c
+        run_count = row["count"]
+        avg_gen_ms = (row["gen_time_sum"] / run_count) * 1000.0
+        avg_test_ms = (row["test_time_sum"] / run_count) * 1000.0
+        avg_gen_kib = row["gen_peak_sum"] / run_count / 1024.0
+        avg_test_kib = row["test_peak_sum"] / run_count / 1024.0
+        pass_rate = row["pass_sum"] / run_count
+        avg_p = row["p_value_sum"] / run_count
+        pass_chances = compute_pass_chances(
+            pass_count=row["pass_sum"],
+            total_count=run_count,
+            alpha=alpha,
+            bayes_pass_threshold=bayes_pass_threshold,
+        )
 
         line = (
             f"[{size_bits} bit] {gen_name} | {test_name}\n"
@@ -593,6 +646,13 @@ def run_benchmark_mode(generators, tests_to_run, sample_sizes, repeats: int, alp
         )
         print(line, end="")
         file.write(line)
+
+        generator = generators[gen_name]
+        generator_class = getattr(generator, "generator_class", "UNKNOWN")
+        class_key = (generator_class, size_bits)
+        class_pass_summary[class_key]["classical_pass_values"].append(pass_chances["classical_pass_chance"])
+        class_pass_summary[class_key]["bayes_pass_values"].append(pass_chances["bayes_pass_chance"])
+
         benchmark_rows.append({
             "sample_size": size_bits,
             "generator": gen_name,
@@ -603,20 +663,50 @@ def run_benchmark_mode(generators, tests_to_run, sample_sizes, repeats: int, alp
             "avg_test_kib": avg_test_kib,
             "avg_p_value": avg_p,
             "pass_rate": pass_rate,
+            "classical_pass_chance": pass_chances["classical_pass_chance"],
+            "classical_fail_chance": pass_chances["classical_fail_chance"],
+            "bayes_pass_chance": pass_chances["bayes_pass_chance"],
+            "bayes_fail_chance": pass_chances["bayes_fail_chance"],
+            "passrate_verdict": pass_chances["passrate_verdict"],
+            "bayes_verdict": pass_chances["bayes_verdict"],
         })
 
     file.write("==================== Agregace podle tříd generátorů ====================\n")
     print("==================== Agregace podle tříd generátorů ====================")
     class_rows = []
-    for gen_class, size_bits in sorted(class_stats.keys(), key=lambda x: (x[1], x[0])):
+    for gen_class, size_bits in sorted(class_stats.keys(), key=lambda key_item: (key_item[1], key_item[0])):
         row = class_stats[(gen_class, size_bits)]
-        c = row["count"]
-        avg_gen_ms = (row["gen_time_sum"] / c) * 1000.0
-        avg_test_ms = (row["test_time_sum"] / c) * 1000.0
-        avg_gen_kib = row["gen_peak_sum"] / c / 1024.0
-        avg_test_kib = row["test_peak_sum"] / c / 1024.0
-        pass_rate = row["pass_sum"] / c
-        avg_p = row["p_value_sum"] / c
+        run_count = row["count"]
+        avg_gen_ms = (row["gen_time_sum"] / run_count) * 1000.0
+        avg_test_ms = (row["test_time_sum"] / run_count) * 1000.0
+        avg_gen_kib = row["gen_peak_sum"] / run_count / 1024.0
+        avg_test_kib = row["test_peak_sum"] / run_count / 1024.0
+        pass_rate = row["pass_sum"] / run_count
+        avg_p = row["p_value_sum"] / run_count
+        pass_chances = compute_pass_chances(
+            pass_count=row["pass_sum"],
+            total_count=run_count,
+            alpha=alpha,
+            bayes_pass_threshold=bayes_pass_threshold,
+        )
+        classical_pass_values = class_pass_summary[(gen_class, size_bits)]["classical_pass_values"]
+        bayes_pass_values = class_pass_summary[(gen_class, size_bits)]["bayes_pass_values"]
+
+        avg_classical_pass = float(np.mean(classical_pass_values)) if classical_pass_values else 0.0
+        geo_classical_pass = (
+            float(np.exp(np.mean(np.log(np.clip(np.array(classical_pass_values, dtype=float), 1e-12, 1.0)))))
+            if classical_pass_values
+            else 0.0
+        )
+        min_classical_pass = float(np.min(classical_pass_values)) if classical_pass_values else 0.0
+
+        avg_bayes_pass = float(np.mean(bayes_pass_values)) if bayes_pass_values else 0.0
+        geo_bayes_pass = (
+            float(np.exp(np.mean(np.log(np.clip(np.array(bayes_pass_values, dtype=float), 1e-12, 1.0)))))
+            if bayes_pass_values
+            else 0.0
+        )
+        min_bayes_pass = float(np.min(bayes_pass_values)) if bayes_pass_values else 0.0
         line = (
             f"[{size_bits} bit] {gen_class}\n"
             f"  - gen:  {avg_gen_ms:.2f} ms, peak {avg_gen_kib:.2f} KiB\n"
@@ -634,18 +724,42 @@ def run_benchmark_mode(generators, tests_to_run, sample_sizes, repeats: int, alp
             "avg_test_kib": avg_test_kib,
             "avg_p_value": avg_p,
             "pass_rate": pass_rate,
+            "classical_pass_chance": pass_chances["classical_pass_chance"],
+            "classical_fail_chance": pass_chances["classical_fail_chance"],
+            "bayes_pass_chance": pass_chances["bayes_pass_chance"],
+            "bayes_fail_chance": pass_chances["bayes_fail_chance"],
+            "passrate_verdict": pass_chances["passrate_verdict"],
+            "bayes_verdict": pass_chances["bayes_verdict"],
+            "avg_classical_pass_chance": avg_classical_pass,
+            "geo_classical_pass_chance": geo_classical_pass,
+            "min_classical_pass_chance": min_classical_pass,
+            "avg_bayes_pass_chance": avg_bayes_pass,
+            "geo_bayes_pass_chance": geo_bayes_pass,
+            "min_bayes_pass_chance": min_bayes_pass,
         })
 
     write_csv_rows(
         csv_paths["benchmark_metrics"],
-        ["sample_size", "generator", "test", "avg_gen_ms", "avg_test_ms", "avg_gen_kib", "avg_test_kib", "avg_p_value",
-         "pass_rate"],
+        [
+            "sample_size", "generator", "test", "avg_gen_ms", "avg_test_ms",
+            "avg_gen_kib", "avg_test_kib", "avg_p_value", "pass_rate",
+            "classical_pass_chance", "classical_fail_chance",
+            "bayes_pass_chance", "bayes_fail_chance",
+            "passrate_verdict", "bayes_verdict",
+        ],
         benchmark_rows,
     )
     write_csv_rows(
         csv_paths["benchmark_class"],
-        ["sample_size", "generator_class", "avg_gen_ms", "avg_test_ms", "avg_gen_kib", "avg_test_kib", "avg_p_value",
-         "pass_rate"],
+        [
+            "sample_size", "generator_class", "avg_gen_ms", "avg_test_ms",
+            "avg_gen_kib", "avg_test_kib", "avg_p_value", "pass_rate",
+            "classical_pass_chance", "classical_fail_chance",
+            "bayes_pass_chance", "bayes_fail_chance",
+            "passrate_verdict", "bayes_verdict",
+            "avg_classical_pass_chance", "geo_classical_pass_chance", "min_classical_pass_chance",
+            "avg_bayes_pass_chance", "geo_bayes_pass_chance", "min_bayes_pass_chance",
+        ],
         class_rows,
     )
 
@@ -662,23 +776,23 @@ if __name__ == "__main__":
     with open("config.json", "r", encoding="utf-8") as cfg_file:
         config = json.load(cfg_file)
 
-    SAMPLE_SIZE = int(config.get("sample_size", 1_000_000))
-    NUM_SAMPLES = int(config.get("sample_iter", 100))
-    OUTPUT_DIR = config.get("output_dir", "outputs")
-    MODE = config.get("mode", "single-source").lower()
-    MODE = {
+    sample_size = int(config.get("sample_size", 1_000_000))
+    num_samples = int(config.get("sample_iter", 500))
+    output_dir = config.get("output_dir", "outputs")
+    mode = config.get("mode", "single-source").lower()
+    mode = {
         "single_source": "single-source",
-    }.get(MODE, MODE)
-    ALPHA = float(config.get("alpha", 0.01))
-    BAYES_PASS_THRESHOLD = float(config.get("bayes_pass_threshold", 0.95))
-    BENCHMARK_SIZES = config.get("benchmark_sample_sizes", [10000, 100000, 1000000])
-    BENCHMARK_REPEATS = int(config.get("benchmark_repeats", 3))
-    AMBIENT_SAMPLE_RATE = int(config.get("ambient_sample_rate", 48000))
-    AMBIENT_WHITENING = str(config.get("ambient_whitening", "von-neumann+sha256"))
-    AMBIENT_HASH_BLOCK_BYTES = int(config.get("ambient_hash_block_bytes", 4096))
+    }.get(mode, mode)
+    alpha = float(config.get("alpha", 0.01))
+    bayes_pass_threshold = float(config.get("bayes_pass_threshold", 0.95))
+    benchmark_sizes = config.get("benchmark_sample_sizes", [10000, 100000, 1000000])
+    benchmark_repeats = int(config.get("benchmark_repeats", 3))
+    ambient_sample_rate = int(config.get("ambient_sample_rate", 48000))
+    ambient_whitening = str(config.get("ambient_whitening", "von-neumann+sha256"))
+    ambient_hash_block_bytes = int(config.get("ambient_hash_block_bytes", 4096))
     ambient_dataset_info = None
 
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
     run_stamp = str(datetime.datetime.now())
 
     all_generators = {
@@ -699,7 +813,6 @@ if __name__ == "__main__":
         custom_generator_sources[display_name] = metadata
         all_generators[display_name] = None
 
-    # Inicializace testů
     all_tests = [
         ("Frequency (Monobit) Test", MonobitTest()),
         ("Runs Test", RunsTest()),
@@ -718,15 +831,16 @@ if __name__ == "__main__":
     single_source_runs = []
 
     try:
-        if MODE == "benchmark":
+        if mode == "benchmark":
             generators = dict(all_generators)
             benchmark_audio_files = prepare_audio_files_for_benchmark(
-                sample_sizes=BENCHMARK_SIZES,
-                repeats=BENCHMARK_REPEATS,
+                sample_sizes=benchmark_sizes,
+                repeats=benchmark_repeats,
             )
             generators[AMBIENT_GENERATOR_NAME] = AudioSampleBatchGenerator(
                 filepaths=benchmark_audio_files,
-                strict=True,
+                strict=False,
+                enforce_size_bits=True,
             )
             ambient_dataset_info = f"{AMBIENT_AUDIO_DIR} ({len(benchmark_audio_files)} files)"
             for gen_name, metadata in custom_generator_sources.items():
@@ -737,22 +851,22 @@ if __name__ == "__main__":
                     warn_on_short_sample=True,
                 )
 
-        if MODE == "single-source":
+        if mode == "single-source":
             print_generators(all_generators)
             selected_generator_name, selected_generator = get_generator_with_index(all_generators)
             if selected_generator_name is None:
                 for gen_name, gen_obj in all_generators.items():
                     run_generator = gen_obj
-                    run_num_samples = NUM_SAMPLES
+                    run_num_samples = num_samples
                     run_ambient_info = None
 
                     if gen_name == AMBIENT_GENERATOR_NAME:
                         file_paths = prepare_audio_dataset(
-                            sample_size_bits=SAMPLE_SIZE,
-                            sample_count=NUM_SAMPLES,
-                            sample_rate=AMBIENT_SAMPLE_RATE,
-                            whitening=AMBIENT_WHITENING,
-                            hash_block_bytes=AMBIENT_HASH_BLOCK_BYTES,
+                            sample_size_bits=sample_size,
+                            sample_count=num_samples,
+                            sample_rate=ambient_sample_rate,
+                            whitening=ambient_whitening,
+                            hash_block_bytes=ambient_hash_block_bytes,
                         )
                         run_generator = AudioSampleBatchGenerator(filepaths=file_paths, strict=True)
                         run_num_samples = len(file_paths)
@@ -776,15 +890,15 @@ if __name__ == "__main__":
                         "ambient_info": run_ambient_info,
                     })
             else:
-                run_num_samples = NUM_SAMPLES
+                run_num_samples = num_samples
                 run_ambient_info = None
                 if selected_generator_name == AMBIENT_GENERATOR_NAME:
                     file_paths = prepare_audio_dataset(
-                        sample_size_bits=SAMPLE_SIZE,
-                        sample_count=NUM_SAMPLES,
-                        sample_rate=AMBIENT_SAMPLE_RATE,
-                        whitening=AMBIENT_WHITENING,
-                        hash_block_bytes=AMBIENT_HASH_BLOCK_BYTES,
+                        sample_size_bits=sample_size,
+                        sample_count=num_samples,
+                        sample_rate=ambient_sample_rate,
+                        whitening=ambient_whitening,
+                        hash_block_bytes=ambient_hash_block_bytes,
                     )
                     selected_generator = AudioSampleBatchGenerator(filepaths=file_paths, strict=True)
                     run_num_samples = len(file_paths)
@@ -807,22 +921,22 @@ if __name__ == "__main__":
                     "num_samples": run_num_samples,
                     "ambient_info": run_ambient_info,
                 })
-    except Exception as e:
-        print(e)
+    except Exception as exc:
+        print(exc)
         sys.exit(1)
 
-    if MODE == "benchmark":
-        mode_output_dir = os.path.join(OUTPUT_DIR, "benchmarks")
+    if mode == "benchmark":
+        mode_output_dir = os.path.join(output_dir, "benchmarks")
         os.makedirs(mode_output_dir, exist_ok=True)
-        OUTPUT_FILE = os.path.join(mode_output_dir, f"output_{MODE}-{run_stamp}.txt")
-        CSV_PATHS = make_output_paths(OUTPUT_FILE)
+        output_file = os.path.join(mode_output_dir, f"output_{mode}-{run_stamp}.txt")
+        csv_paths = make_output_paths(output_file)
 
-        with open(OUTPUT_FILE, "w", encoding="utf-8") as file:
-            file.write(f"Mode: {MODE}\n")
+        with open(output_file, "w", encoding="utf-8") as file:
+            file.write(f"Mode: {mode}\n")
             file.write(
                 "Ambient noise config: "
-                f"whitening={AMBIENT_WHITENING}, "
-                f"sample_rate={AMBIENT_SAMPLE_RATE}, hash_block_bytes={AMBIENT_HASH_BLOCK_BYTES}\n"
+                f"whitening={ambient_whitening}, "
+                f"sample_rate={ambient_sample_rate}, hash_block_bytes={ambient_hash_block_bytes}\n"
             )
             if ambient_dataset_info:
                 file.write(f"Ambient audio dataset: {ambient_dataset_info}\n")
@@ -831,15 +945,16 @@ if __name__ == "__main__":
             run_benchmark_mode(
                 generators=generators,
                 tests_to_run=tests_to_run,
-                sample_sizes=BENCHMARK_SIZES,
-                repeats=BENCHMARK_REPEATS,
-                alpha=ALPHA,
+                sample_sizes=benchmark_sizes,
+                repeats=benchmark_repeats,
+                alpha=alpha,
+                bayes_pass_threshold=bayes_pass_threshold,
                 file=file,
-                csv_paths=CSV_PATHS,
+                csv_paths=csv_paths,
             )
 
-        print(f"\nVýsledky byly úspěšně uloženy do: {OUTPUT_FILE}")
-    elif MODE == "single-source":
+        print(f"\nVýsledky byly úspěšně uloženy do: {output_file}")
+    elif mode == "single-source":
         if not single_source_runs:
             print("Single-source režim nemá žádný generátor ke spuštění.")
             sys.exit(1)
@@ -847,19 +962,19 @@ if __name__ == "__main__":
         output_files = []
         for run_cfg in single_source_runs:
             gen_name = run_cfg["name"]
-            mode_output_dir = os.path.join(OUTPUT_DIR, gen_name)
+            mode_output_dir = os.path.join(output_dir, gen_name)
             os.makedirs(mode_output_dir, exist_ok=True)
 
             per_run_stamp = str(datetime.datetime.now())
-            output_file = os.path.join(mode_output_dir, f"output_{MODE}-{per_run_stamp}.txt")
+            output_file = os.path.join(mode_output_dir, f"output_{mode}-{per_run_stamp}.txt")
             csv_paths = make_output_paths(output_file)
 
             with open(output_file, "w", encoding="utf-8") as file:
-                file.write(f"Mode: {MODE}\n")
+                file.write(f"Mode: {mode}\n")
                 file.write(
                     "Ambient noise config: "
-                    f"whitening={AMBIENT_WHITENING}, "
-                    f"sample_rate={AMBIENT_SAMPLE_RATE}, hash_block_bytes={AMBIENT_HASH_BLOCK_BYTES}\n"
+                    f"whitening={ambient_whitening}, "
+                    f"sample_rate={ambient_sample_rate}, hash_block_bytes={ambient_hash_block_bytes}\n"
                 )
                 if run_cfg["ambient_info"]:
                     file.write(f"Ambient audio dataset: {run_cfg['ambient_info']}\n")
@@ -869,10 +984,10 @@ if __name__ == "__main__":
                 run_single_source_mode(
                     generators={gen_name: run_cfg["generator"]},
                     tests_to_run=tests_to_run,
-                    sample_size=SAMPLE_SIZE,
+                    sample_size=sample_size,
                     num_samples=run_cfg["num_samples"],
-                    alpha=ALPHA,
-                    bayes_pass_threshold=BAYES_PASS_THRESHOLD,
+                    alpha=alpha,
+                    bayes_pass_threshold=bayes_pass_threshold,
                     file=file,
                     csv_paths=csv_paths,
                 )
@@ -883,5 +998,5 @@ if __name__ == "__main__":
         for path in output_files:
             print(f"- {path}")
     else:
-        print(f"Neznámý režim: {MODE}. Použij 'benchmark' nebo 'single-source'.")
+        print(f"Neznámý režim: {mode}. Použij 'benchmark' nebo 'single-source'.")
         sys.exit(1)
