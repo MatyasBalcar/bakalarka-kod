@@ -149,12 +149,6 @@ class TestStrategy(ABC):
 
 class MonobitTest(TestStrategy):
     """Frequency (Monobit) test.
-
-    Ověřuje globální vyváženost nul a jedniček v celé sekvenci.
-    Testuje nulovou hypotézu, že bity jsou nezávislé a P(1)=0.5.
-
-    Návratová hodnota:
-    - p-hodnota v intervalu <0,1>; nízká hodnota znamená podezření na bias.
     """
 
     def execute(self, bits: np.ndarray) -> float:
@@ -166,12 +160,6 @@ class MonobitTest(TestStrategy):
 
 class RunsTest(TestStrategy):
     """Runs test (test běhů).
-
-    Sleduje, zda počet přechodů 0->1 a 1->0 odpovídá náhodné sekvenci.
-    Nejprve kontroluje předpoklad testu: podíl jedniček musí být blízko 0.5.
-
-    Návratová hodnota:
-    - p-hodnota; při porušení předpokladu vyváženosti vrací 0.0.
     """
 
     def execute(self, bits: np.ndarray) -> float:
@@ -190,13 +178,6 @@ class RunsTest(TestStrategy):
 
 class BlockFrequencyTest(TestStrategy):
     """Block Frequency test.
-
-    Dělí sekvenci na bloky stejné délky a v každém bloku hodnotí podíl jedniček.
-    Oproti Monobit testu je citlivější na lokální odchylky v částech sekvence.
-
-    Návratová hodnota:
-    - p-hodnota z chí-kvadrát statistiky,
-    - 0.0 pokud je sekvence kratší než zvolený block_size.
     """
 
     def execute(self, bits: np.ndarray, block_size: int = 128) -> float:
@@ -213,13 +194,6 @@ class BlockFrequencyTest(TestStrategy):
 
 class AutocorrelationTest(TestStrategy):
     """Autocorrelation test.
-
-    Porovnává sekvenci s její verzí posunutou o lag d a měří počet neshod.
-    Ověřuje, zda mezi bity na vzdálenost d nevzniká systematická závislost.
-
-    Návratová hodnota:
-    - p-hodnota z normalizovaného z-score,
-    - 0.0 pokud je vstup kratší nebo stejně dlouhý jako lag d.
     """
 
     def execute(self, bits: np.ndarray, lag: int = 1) -> float:
@@ -236,12 +210,6 @@ class AutocorrelationTest(TestStrategy):
 
 class SpectralTest(TestStrategy):
     """Discrete Fourier Transform (Spectral) test.
-
-    Převádí bity na hodnoty {-1,+1}, počítá FFT a analyzuje amplitudové spektrum.
-    Hledá periodické vzory, které by v náhodné sekvenci neměly být výrazné.
-
-    Návratová hodnota:
-    - p-hodnota; nízká hodnota značí odchylku od očekávaného spektrálního chování.
     """
 
     def execute(self, bits: np.ndarray) -> float:
@@ -262,13 +230,6 @@ class SpectralTest(TestStrategy):
 
 class LinearComplexityTest(TestStrategy):
     """Linear Complexity test.
-
-    Odhaduje lineární složitost bloků sekvence pomocí Berlekamp-Massey algoritmu.
-    Testuje, zda rozdělení složitostí odpovídá očekávání pro náhodný zdroj.
-
-    Návratová hodnota:
-    - p-hodnota z chí-kvadrát statistiky nad kategoriemi složitosti,
-    - 0.0 pokud je vstup kratší než velikost bloku m.
     """
 
     def execute(self, bits: np.ndarray, block_size: int = 500) -> float:
@@ -317,13 +278,6 @@ class LinearComplexityTest(TestStrategy):
 
 class DiehardBirthdaySpacingsTest(TestStrategy):
     """Diehard-inspired Birthday Spacings test.
-
-    Bloky bitů převádí na čísla ("narozeniny"), seřadí je a analyzuje kolize mezer.
-    Počet kolizí porovnává s Poissonovým očekáváním pro náhodný výběr.
-
-    Návratová hodnota:
-    - p-hodnota z normalizovaného rozdílu oproti očekávání,
-    - 0.0 pokud není dostatek dat pro zadané parametry.
     """
 
     def execute(self, bits: np.ndarray, n_samples: int = 512, bits_per_sample: int = 24) -> float:
@@ -354,13 +308,6 @@ class DiehardBirthdaySpacingsTest(TestStrategy):
 
 class DieharderByteDistributionTest(TestStrategy):
     """Dieharder-inspired byte distribution test.
-
-    Převádí bitovou sekvenci na bajty (0..255) a testuje uniformitu histogramu.
-    Ověřuje, zda některé bajtové hodnoty nejsou zastoupené systematicky častěji.
-
-    Návratová hodnota:
-    - p-hodnota z chí-kvadrát testu,
-    - 0.0 pokud je k dispozici méně než 256 bajtů.
     """
 
     def execute(self, bits: np.ndarray) -> float:
