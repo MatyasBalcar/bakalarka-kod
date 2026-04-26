@@ -965,7 +965,8 @@ if __name__ == "__main__":
             mode_output_dir = os.path.join(output_dir, gen_name)
             os.makedirs(mode_output_dir, exist_ok=True)
 
-            per_run_stamp = str(datetime.datetime.now())
+            per_run_stamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+
             output_file = os.path.join(mode_output_dir, f"output_{mode}-{per_run_stamp}.txt")
             csv_paths = make_output_paths(output_file)
 
