@@ -54,13 +54,10 @@ def evaluate_pvalues(
             "median_p": 0.0,
             "stability_score": 0.0,
             "final_score": 0.0,
-            "pass_posterior_chance": 0.0,
-            "classical_randomness_chance": 0.0,
-            "classical_fail_chance": 1.0,
-            "bayes_randomness_chance": 0.0,
-            "bayes_fail_chance": 1.0,
-            "randomness_chance": 0.0,
-            "fail_chance": 1.0,
+            "empirical_pass_rate": 0.0,
+            "empirical_fail_rate": 1.0,
+            "posterior_pass_threshold_probability": 0.0,
+            "posterior_fail_threshold_probability": 1.0,
             "verdict": "FAIL",
         }
 
@@ -79,19 +76,14 @@ def evaluate_pvalues(
     alpha_posterior = passed_count + 0.5
     beta_posterior = (sample_count - passed_count) + 0.5
     threshold = float(np.clip(min_pass_rate, 0.0, 1.0))
-    pass_posterior_chance = float(1.0 - spc.betainc(alpha_posterior, beta_posterior, threshold))
-    pass_posterior_chance = float(np.clip(pass_posterior_chance, 0.0, 1.0))
+    posterior_pass_threshold_probability = float(1.0 - spc.betainc(alpha_posterior, beta_posterior, threshold))
+    posterior_pass_threshold_probability = float(np.clip(posterior_pass_threshold_probability, 0.0, 1.0))
 
-    classical_randomness_chance = pass_rate
-    classical_fail_chance = float(1.0 - classical_randomness_chance)
-
-    bayes_randomness_chance = pass_posterior_chance
-    bayes_fail_chance = float(1.0 - bayes_randomness_chance)
-
-    randomness_chance = bayes_randomness_chance
-    fail_chance = bayes_fail_chance
+    empirical_pass_rate = pass_rate
+    empirical_fail_rate = float(1.0 - empirical_pass_rate)
+    posterior_fail_threshold_probability = float(1.0 - posterior_pass_threshold_probability)
     bayes_threshold = float(np.clip(bayes_pass_threshold, 0.0, 1.0))
-    verdict = "PASS" if bayes_randomness_chance >= bayes_threshold else "FAIL"
+    verdict = "PASS" if posterior_pass_threshold_probability >= bayes_threshold else "FAIL"
 
     return {
         "pass_rate": pass_rate,
@@ -99,13 +91,10 @@ def evaluate_pvalues(
         "median_p": median_p,
         "stability_score": stability_score,
         "final_score": final_score,
-        "pass_posterior_chance": pass_posterior_chance,
-        "classical_randomness_chance": classical_randomness_chance,
-        "classical_fail_chance": classical_fail_chance,
-        "bayes_randomness_chance": bayes_randomness_chance,
-        "bayes_fail_chance": bayes_fail_chance,
-        "randomness_chance": randomness_chance,
-        "fail_chance": fail_chance,
+        "empirical_pass_rate": empirical_pass_rate,
+        "empirical_fail_rate": empirical_fail_rate,
+        "posterior_pass_threshold_probability": posterior_pass_threshold_probability,
+        "posterior_fail_threshold_probability": posterior_fail_threshold_probability,
         "verdict": verdict,
     }
 

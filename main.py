@@ -269,10 +269,10 @@ def compute_pass_chances(
     if total_count <= 0:
         return {
             "min_pass_rate": 0.0,
-            "classical_pass_chance": 0.0,
-            "classical_fail_chance": 1.0,
-            "bayes_pass_chance": 0.0,
-            "bayes_fail_chance": 1.0,
+            "empirical_pass_rate": 0.0,
+            "empirical_fail_rate": 1.0,
+            "posterior_pass_threshold_probability": 0.0,
+            "posterior_fail_threshold_probability": 1.0,
             "passrate_verdict": "FAIL",
             "bayes_verdict": "FAIL",
         }
@@ -281,26 +281,26 @@ def compute_pass_chances(
     limit = 3.0 * math.sqrt((p_hat * alpha) / total_count)
     min_pass_rate = p_hat - limit
 
-    classical_pass_chance = float(pass_count / total_count)
-    classical_fail_chance = float(1.0 - classical_pass_chance)
+    empirical_pass_rate = float(pass_count / total_count)
+    empirical_fail_rate = float(1.0 - empirical_pass_rate)
 
     a_post = pass_count + 0.5
     b_post = (total_count - pass_count) + 0.5
     threshold = float(np.clip(min_pass_rate, 0.0, 1.0))
-    bayes_pass_chance = float(1.0 - spc.betainc(a_post, b_post, threshold))
-    bayes_pass_chance = float(np.clip(bayes_pass_chance, 0.0, 1.0))
-    bayes_fail_chance = float(1.0 - bayes_pass_chance)
+    posterior_pass_threshold_probability = float(1.0 - spc.betainc(a_post, b_post, threshold))
+    posterior_pass_threshold_probability = float(np.clip(posterior_pass_threshold_probability, 0.0, 1.0))
+    posterior_fail_threshold_probability = float(1.0 - posterior_pass_threshold_probability)
 
     bayes_threshold = float(np.clip(bayes_pass_threshold, 0.0, 1.0))
-    passrate_verdict = "PASS" if classical_pass_chance >= min_pass_rate else "FAIL"
-    bayes_verdict = "PASS" if bayes_pass_chance >= bayes_threshold else "FAIL"
+    passrate_verdict = "PASS" if empirical_pass_rate >= min_pass_rate else "FAIL"
+    bayes_verdict = "PASS" if posterior_pass_threshold_probability >= bayes_threshold else "FAIL"
 
     return {
         "min_pass_rate": float(min_pass_rate),
-        "classical_pass_chance": classical_pass_chance,
-        "classical_fail_chance": classical_fail_chance,
-        "bayes_pass_chance": bayes_pass_chance,
-        "bayes_fail_chance": bayes_fail_chance,
+        "empirical_pass_rate": empirical_pass_rate,
+        "empirical_fail_rate": empirical_fail_rate,
+        "posterior_pass_threshold_probability": posterior_pass_threshold_probability,
+        "posterior_fail_threshold_probability": posterior_fail_threshold_probability,
         "passrate_verdict": passrate_verdict,
         "bayes_verdict": bayes_verdict,
     }
@@ -347,8 +347,8 @@ def run_single_source_mode(
         test_times_ms_by_test = {name: [] for name, _ in tests_to_run}
         verdict_by_test = {}
         gen_times_ms = []
-        classical_randomness_chances_for_generator = []
-        bayes_randomness_chances_for_generator = []
+        empirical_pass_rates_for_generator = []
+        posterior_pass_probabilities_for_generator = []
         pass_rates_for_generator = []
 
         for _ in tqdm(range(num_samples), desc=f"Zpracování vzorků pro {gen_name}", leave=False):
@@ -385,29 +385,28 @@ def run_single_source_mode(
                 "pass_rate": metrics["pass_rate"],
                 "mean_p": metrics["mean_p"],
                 "median_p": metrics["median_p"],
-                "classical_randomness_chance": metrics["classical_randomness_chance"],
-                "classical_fail_chance": metrics["classical_fail_chance"],
-                "bayes_randomness_chance": metrics["bayes_randomness_chance"],
-                "bayes_fail_chance": metrics["bayes_fail_chance"],
+                "empirical_pass_rate": metrics["empirical_pass_rate"],
+                "empirical_fail_rate": metrics["empirical_fail_rate"],
+                "posterior_pass_threshold_probability": metrics["posterior_pass_threshold_probability"],
+                "posterior_fail_threshold_probability": metrics["posterior_fail_threshold_probability"],
                 "avg_gen_time_ms": avg_gen_time_ms,
                 "avg_test_time_ms": avg_test_time_ms,
                 "verdict": passrate_verdict,
                 "bayes_verdict": bayes_verdict,
             })
             pass_rates_for_generator.append(metrics["pass_rate"])
-            classical_randomness_chances_for_generator.append(metrics["classical_randomness_chance"])
-            bayes_randomness_chances_for_generator.append(metrics["bayes_randomness_chance"])
+            empirical_pass_rates_for_generator.append(metrics["empirical_pass_rate"])
+            posterior_pass_probabilities_for_generator.append(metrics["posterior_pass_threshold_probability"])
 
             output_str = (
                 f"  {test_name}:\n"
                 f"   - Úspěšných vzorků: {pass_counts[test_name]}/{num_samples} ({metrics['pass_rate'] * 100:.2f} %)\n"
                 f"   - Mean p-value: {metrics['mean_p']:.6f}, Median p-value: {metrics['median_p']:.6f}\n"
-                f"   - Pass posterior: {metrics['pass_posterior_chance']:.4f}\n"
                 f"   - Avg gen time: {avg_gen_time_ms:.2f} ms, Avg test time: {avg_test_time_ms:.2f} ms\n"
-                f"   - Odhad náhodnosti (classical): {metrics['classical_randomness_chance']:.4f}, "
-                f"Šance selhání (classical): {metrics['classical_fail_chance']:.4f}\n"
-                f"   - Odhad náhodnosti (bayes): {metrics['bayes_randomness_chance']:.4f}, "
-                f"Šance selhání (bayes): {metrics['bayes_fail_chance']:.4f}\n"
+                f"   - Empirický podíl úspěšných vzorků: {metrics['empirical_pass_rate']:.4f}, "
+                f"Empirický podíl neúspěšných: {metrics['empirical_fail_rate']:.4f}\n"
+                f"   - Posteriorní pravděpodobnost splnění prahu: {metrics['posterior_pass_threshold_probability']:.4f}, "
+                f"Nesplnění prahu: {metrics['posterior_fail_threshold_probability']:.4f}\n"
                 f"   - Verdikt testu (pass-rate): {passrate_verdict}\n"
                 f"   - Bayes verdict (doplnkove): {bayes_verdict}\n\n"
             )
@@ -434,39 +433,39 @@ def run_single_source_mode(
         all_test_timings = [t for values in test_times_ms_by_test.values() for t in values]
         avg_test_time_ms_all_tests = float(np.mean(all_test_timings)) if all_test_timings else 0.0
         generator_avg_pass_rate = float(np.mean(pass_rates_for_generator)) if pass_rates_for_generator else 0.0
-        generator_avg_classical_randomness_chance = (
-            float(np.mean(classical_randomness_chances_for_generator))
-            if classical_randomness_chances_for_generator
+        avg_empirical_pass_rate = (
+            float(np.mean(empirical_pass_rates_for_generator))
+            if empirical_pass_rates_for_generator
             else 0.0
         )
-        if classical_randomness_chances_for_generator:
-            clipped_classical = np.clip(np.array(classical_randomness_chances_for_generator, dtype=float), 1e-12, 1.0)
-            generator_geo_classical_randomness_chance = float(np.exp(np.mean(np.log(clipped_classical))))
+        if empirical_pass_rates_for_generator:
+            clipped_empirical = np.clip(np.array(empirical_pass_rates_for_generator, dtype=float), 1e-12, 1.0)
+            geo_empirical_pass_rate = float(np.exp(np.mean(np.log(clipped_empirical))))
         else:
-            generator_geo_classical_randomness_chance = 0.0
-        generator_classical_randomness_chance = (
-            float(np.min(classical_randomness_chances_for_generator))
-            if classical_randomness_chances_for_generator
+            geo_empirical_pass_rate = 0.0
+        min_empirical_pass_rate = (
+            float(np.min(empirical_pass_rates_for_generator))
+            if empirical_pass_rates_for_generator
             else 0.0
         )
-        generator_classical_fail_chance = float(1.0 - generator_classical_randomness_chance)
+        empirical_fail_rate = float(1.0 - min_empirical_pass_rate)
 
-        generator_avg_bayes_randomness_chance = (
-            float(np.mean(bayes_randomness_chances_for_generator))
-            if bayes_randomness_chances_for_generator
+        avg_posterior_pass_threshold_probability = (
+            float(np.mean(posterior_pass_probabilities_for_generator))
+            if posterior_pass_probabilities_for_generator
             else 0.0
         )
-        if bayes_randomness_chances_for_generator:
-            clipped_bayes = np.clip(np.array(bayes_randomness_chances_for_generator, dtype=float), 1e-12, 1.0)
-            generator_geo_bayes_randomness_chance = float(np.exp(np.mean(np.log(clipped_bayes))))
+        if posterior_pass_probabilities_for_generator:
+            clipped_posterior = np.clip(np.array(posterior_pass_probabilities_for_generator, dtype=float), 1e-12, 1.0)
+            geo_posterior_pass_threshold_probability = float(np.exp(np.mean(np.log(clipped_posterior))))
         else:
-            generator_geo_bayes_randomness_chance = 0.0
-        generator_bayes_randomness_chance = (
-            float(np.min(bayes_randomness_chances_for_generator))
-            if bayes_randomness_chances_for_generator
+            geo_posterior_pass_threshold_probability = 0.0
+        min_posterior_pass_threshold_probability = (
+            float(np.min(posterior_pass_probabilities_for_generator))
+            if posterior_pass_probabilities_for_generator
             else 0.0
         )
-        generator_bayes_fail_chance = float(1.0 - generator_bayes_randomness_chance)
+        posterior_fail_threshold_probability = float(1.0 - min_posterior_pass_threshold_probability)
         single_source_summary_rows.append({
             "generator": gen_name,
             "generator_class": getattr(generator, "generator_class", "UNKNOWN"),
@@ -479,32 +478,31 @@ def run_single_source_mode(
             "avg_test_time_ms": avg_test_time_ms_all_tests,
             "avg_pass_rate": generator_avg_pass_rate,
             "aggregation": "min_across_tests",
-            "avg_classical_randomness_chance": generator_avg_classical_randomness_chance,
-            "geo_classical_randomness_chance": generator_geo_classical_randomness_chance,
-            "classical_randomness_chance": generator_classical_randomness_chance,
-            "classical_fail_chance": generator_classical_fail_chance,
-            "avg_bayes_randomness_chance": generator_avg_bayes_randomness_chance,
-            "geo_bayes_randomness_chance": generator_geo_bayes_randomness_chance,
-            "bayes_randomness_chance": generator_bayes_randomness_chance,
-            "bayes_fail_chance": generator_bayes_fail_chance,
+            "avg_empirical_pass_rate": avg_empirical_pass_rate,
+            "geo_empirical_pass_rate": geo_empirical_pass_rate,
+            "min_empirical_pass_rate": min_empirical_pass_rate,
+            "empirical_fail_rate": empirical_fail_rate,
+            "avg_posterior_pass_threshold_probability": avg_posterior_pass_threshold_probability,
+            "geo_posterior_pass_threshold_probability": geo_posterior_pass_threshold_probability,
+            "min_posterior_pass_threshold_probability": min_posterior_pass_threshold_probability,
+            "posterior_fail_threshold_probability": posterior_fail_threshold_probability,
         })
 
         generation_line = (
             f"  => Průměrný čas generování pro {gen_name}: {avg_gen_time_ms:.2f} ms\n"
             f"  => Průměrný čas testu pro {gen_name}: {avg_test_time_ms_all_tests:.2f} ms\n"
             f"  => Průměrný pass-rate přes všechny testy: {generator_avg_pass_rate * 100:.2f} %\n"
-            f"  => Odhad náhodnosti (classical průměr přes testy): "
-            f"{generator_avg_classical_randomness_chance:.4f} (0-1)\n"
-            f"  => Odhad náhodnosti (classical geometrický průměr): "
-            f"{generator_geo_classical_randomness_chance:.4f} (0-1)\n"
-            f"  => Odhad náhodnosti sekvence generátoru "
-            f"(classical min přes testy): {generator_classical_randomness_chance:.4f} (0-1)\n"
-            f"  => Odhad šance selhání (classical): {generator_classical_fail_chance:.4f} (0-1)\n"
-            f"  => Odhad náhodnosti (bayes průměr přes testy): {generator_avg_bayes_randomness_chance:.4f} (0-1)\n"
-            f"  => Odhad náhodnosti (bayes geometrický průměr): {generator_geo_bayes_randomness_chance:.4f} (0-1)\n"
-            f"  => Odhad náhodnosti sekvence generátoru "
-            f"(bayes min přes testy): {generator_bayes_randomness_chance:.4f} (0-1)\n"
-            f"  => Odhad šance selhání (bayes): {generator_bayes_fail_chance:.4f} (0-1)\n\n"
+            f"  => Empirický podíl úspěšných vzorků (průměr přes testy): {avg_empirical_pass_rate:.4f} (0-1)\n"
+            f"  => Empirický podíl úspěšných vzorků (geometrický průměr): {geo_empirical_pass_rate:.4f} (0-1)\n"
+            f"  => Empirický podíl úspěšných vzorků (minimum přes testy): {min_empirical_pass_rate:.4f} (0-1)\n"
+            f"  => Empirický podíl neúspěšných vzorků: {empirical_fail_rate:.4f} (0-1)\n"
+            f"  => Posteriorní pravděpodobnost splnění prahu (průměr přes testy): "
+            f"{avg_posterior_pass_threshold_probability:.4f} (0-1)\n"
+            f"  => Posteriorní pravděpodobnost splnění prahu (geometrický průměr): "
+            f"{geo_posterior_pass_threshold_probability:.4f} (0-1)\n"
+            f"  => Posteriorní pravděpodobnost splnění prahu (minimum přes testy): "
+            f"{min_posterior_pass_threshold_probability:.4f} (0-1)\n"
+            f"  => Posteriorní pravděpodobnost nesplnění prahu: {posterior_fail_threshold_probability:.4f} (0-1)\n\n"
         )
         print(generation_line, end="")
         file.write(generation_line)
@@ -514,8 +512,8 @@ def run_single_source_mode(
         [
             "generator", "generator_class", "test", "sample_size", "sample_iter",
             "pass_rate", "mean_p", "median_p",
-            "classical_randomness_chance", "classical_fail_chance",
-            "bayes_randomness_chance", "bayes_fail_chance",
+            "empirical_pass_rate", "empirical_fail_rate",
+            "posterior_pass_threshold_probability", "posterior_fail_threshold_probability",
             "avg_gen_time_ms", "avg_test_time_ms", "verdict", "bayes_verdict",
         ],
         single_source_rows,
@@ -527,10 +525,8 @@ def run_single_source_mode(
             "pass_tests", "fail_tests", "avg_gen_time_ms", "avg_test_time_ms",
             "avg_pass_rate",
             "aggregation",
-            "avg_classical_randomness_chance", "geo_classical_randomness_chance",
-            "classical_randomness_chance", "classical_fail_chance",
-            "avg_bayes_randomness_chance", "geo_bayes_randomness_chance",
-            "bayes_randomness_chance", "bayes_fail_chance",
+            "avg_empirical_pass_rate", "geo_empirical_pass_rate", "min_empirical_pass_rate", "empirical_fail_rate",
+            "avg_posterior_pass_threshold_probability", "geo_posterior_pass_threshold_probability", "min_posterior_pass_threshold_probability", "posterior_fail_threshold_probability",
         ],
         single_source_summary_rows,
     )
@@ -616,8 +612,8 @@ def run_benchmark_mode(
     file.write("Výsledky benchmarku (průměry):\n")
     benchmark_rows = []
     class_pass_summary = defaultdict(lambda: {
-        "classical_pass_values": [],
-        "bayes_pass_values": [],
+        "empirical_pass_values": [],
+        "posterior_pass_values": [],
     })
     for gen_name, test_name, size_bits in sorted(
             stats.keys(),
@@ -650,8 +646,10 @@ def run_benchmark_mode(
         generator = generators[gen_name]
         generator_class = getattr(generator, "generator_class", "UNKNOWN")
         class_key = (generator_class, size_bits)
-        class_pass_summary[class_key]["classical_pass_values"].append(pass_chances["classical_pass_chance"])
-        class_pass_summary[class_key]["bayes_pass_values"].append(pass_chances["bayes_pass_chance"])
+        class_pass_summary[class_key]["empirical_pass_values"].append(pass_chances["empirical_pass_rate"])
+        class_pass_summary[class_key]["posterior_pass_values"].append(
+            pass_chances["posterior_pass_threshold_probability"]
+        )
 
         benchmark_rows.append({
             "sample_size": size_bits,
@@ -663,10 +661,10 @@ def run_benchmark_mode(
             "avg_test_kib": avg_test_kib,
             "avg_p_value": avg_p,
             "pass_rate": pass_rate,
-            "classical_pass_chance": pass_chances["classical_pass_chance"],
-            "classical_fail_chance": pass_chances["classical_fail_chance"],
-            "bayes_pass_chance": pass_chances["bayes_pass_chance"],
-            "bayes_fail_chance": pass_chances["bayes_fail_chance"],
+            "empirical_pass_rate": pass_chances["empirical_pass_rate"],
+            "empirical_fail_rate": pass_chances["empirical_fail_rate"],
+            "posterior_pass_threshold_probability": pass_chances["posterior_pass_threshold_probability"],
+            "posterior_fail_threshold_probability": pass_chances["posterior_fail_threshold_probability"],
             "passrate_verdict": pass_chances["passrate_verdict"],
             "bayes_verdict": pass_chances["bayes_verdict"],
         })
@@ -689,24 +687,24 @@ def run_benchmark_mode(
             alpha=alpha,
             bayes_pass_threshold=bayes_pass_threshold,
         )
-        classical_pass_values = class_pass_summary[(gen_class, size_bits)]["classical_pass_values"]
-        bayes_pass_values = class_pass_summary[(gen_class, size_bits)]["bayes_pass_values"]
+        empirical_pass_values = class_pass_summary[(gen_class, size_bits)]["empirical_pass_values"]
+        posterior_pass_values = class_pass_summary[(gen_class, size_bits)]["posterior_pass_values"]
 
-        avg_classical_pass = float(np.mean(classical_pass_values)) if classical_pass_values else 0.0
-        geo_classical_pass = (
-            float(np.exp(np.mean(np.log(np.clip(np.array(classical_pass_values, dtype=float), 1e-12, 1.0)))))
-            if classical_pass_values
+        avg_empirical_pass_rate = float(np.mean(empirical_pass_values)) if empirical_pass_values else 0.0
+        geo_empirical_pass_rate = (
+            float(np.exp(np.mean(np.log(np.clip(np.array(empirical_pass_values, dtype=float), 1e-12, 1.0)))))
+            if empirical_pass_values
             else 0.0
         )
-        min_classical_pass = float(np.min(classical_pass_values)) if classical_pass_values else 0.0
+        min_empirical_pass_rate = float(np.min(empirical_pass_values)) if empirical_pass_values else 0.0
 
-        avg_bayes_pass = float(np.mean(bayes_pass_values)) if bayes_pass_values else 0.0
-        geo_bayes_pass = (
-            float(np.exp(np.mean(np.log(np.clip(np.array(bayes_pass_values, dtype=float), 1e-12, 1.0)))))
-            if bayes_pass_values
+        avg_posterior_pass_threshold_probability = float(np.mean(posterior_pass_values)) if posterior_pass_values else 0.0
+        geo_posterior_pass_threshold_probability = (
+            float(np.exp(np.mean(np.log(np.clip(np.array(posterior_pass_values, dtype=float), 1e-12, 1.0)))))
+            if posterior_pass_values
             else 0.0
         )
-        min_bayes_pass = float(np.min(bayes_pass_values)) if bayes_pass_values else 0.0
+        min_posterior_pass_threshold_probability = float(np.min(posterior_pass_values)) if posterior_pass_values else 0.0
         line = (
             f"[{size_bits} bit] {gen_class}\n"
             f"  - gen:  {avg_gen_ms:.2f} ms, peak {avg_gen_kib:.2f} KiB\n"
@@ -724,18 +722,18 @@ def run_benchmark_mode(
             "avg_test_kib": avg_test_kib,
             "avg_p_value": avg_p,
             "pass_rate": pass_rate,
-            "classical_pass_chance": pass_chances["classical_pass_chance"],
-            "classical_fail_chance": pass_chances["classical_fail_chance"],
-            "bayes_pass_chance": pass_chances["bayes_pass_chance"],
-            "bayes_fail_chance": pass_chances["bayes_fail_chance"],
+            "empirical_pass_rate": pass_chances["empirical_pass_rate"],
+            "empirical_fail_rate": pass_chances["empirical_fail_rate"],
+            "posterior_pass_threshold_probability": pass_chances["posterior_pass_threshold_probability"],
+            "posterior_fail_threshold_probability": pass_chances["posterior_fail_threshold_probability"],
             "passrate_verdict": pass_chances["passrate_verdict"],
             "bayes_verdict": pass_chances["bayes_verdict"],
-            "avg_classical_pass_chance": avg_classical_pass,
-            "geo_classical_pass_chance": geo_classical_pass,
-            "min_classical_pass_chance": min_classical_pass,
-            "avg_bayes_pass_chance": avg_bayes_pass,
-            "geo_bayes_pass_chance": geo_bayes_pass,
-            "min_bayes_pass_chance": min_bayes_pass,
+            "avg_empirical_pass_rate": avg_empirical_pass_rate,
+            "geo_empirical_pass_rate": geo_empirical_pass_rate,
+            "min_empirical_pass_rate": min_empirical_pass_rate,
+            "avg_posterior_pass_threshold_probability": avg_posterior_pass_threshold_probability,
+            "geo_posterior_pass_threshold_probability": geo_posterior_pass_threshold_probability,
+            "min_posterior_pass_threshold_probability": min_posterior_pass_threshold_probability,
         })
 
     write_csv_rows(
@@ -743,8 +741,8 @@ def run_benchmark_mode(
         [
             "sample_size", "generator", "test", "avg_gen_ms", "avg_test_ms",
             "avg_gen_kib", "avg_test_kib", "avg_p_value", "pass_rate",
-            "classical_pass_chance", "classical_fail_chance",
-            "bayes_pass_chance", "bayes_fail_chance",
+            "empirical_pass_rate", "empirical_fail_rate",
+            "posterior_pass_threshold_probability", "posterior_fail_threshold_probability",
             "passrate_verdict", "bayes_verdict",
         ],
         benchmark_rows,
@@ -754,11 +752,11 @@ def run_benchmark_mode(
         [
             "sample_size", "generator_class", "avg_gen_ms", "avg_test_ms",
             "avg_gen_kib", "avg_test_kib", "avg_p_value", "pass_rate",
-            "classical_pass_chance", "classical_fail_chance",
-            "bayes_pass_chance", "bayes_fail_chance",
+            "empirical_pass_rate", "empirical_fail_rate",
+            "posterior_pass_threshold_probability", "posterior_fail_threshold_probability",
             "passrate_verdict", "bayes_verdict",
-            "avg_classical_pass_chance", "geo_classical_pass_chance", "min_classical_pass_chance",
-            "avg_bayes_pass_chance", "geo_bayes_pass_chance", "min_bayes_pass_chance",
+            "avg_empirical_pass_rate", "geo_empirical_pass_rate", "min_empirical_pass_rate",
+            "avg_posterior_pass_threshold_probability", "geo_posterior_pass_threshold_probability", "min_posterior_pass_threshold_probability",
         ],
         class_rows,
     )
