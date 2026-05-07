@@ -59,8 +59,6 @@ def _load_bits_from_bin_file(file_path: str) -> np.ndarray:
 
 
 class AudioSampleBatchGenerator(Generator):
-    """One-file-per-sample generator for pre-captured ambient datasets."""
-
     generator_class = "TRNG"
 
     def __init__(
@@ -333,6 +331,7 @@ class LCG(Generator):
             increment: int = 1013904223,
             modulus: int = 2 ** 32,
     ):
+        self.seed = seed
         self.state = seed
         self.multiplier = multiplier
         self.increment = increment
@@ -360,6 +359,7 @@ class MersenneTwister(Generator):
     _LOWER_MASK = 0x7FFFFFFF
 
     def __init__(self, seed: int):
+        self.seed = seed
         self._mt = np.zeros(self._N, dtype=np.uint32)
         self._index = self._N
         self._seed(seed)
@@ -415,6 +415,7 @@ class PCG64Wrapper(Generator):
     generator_class = "PRNG"
 
     def __init__(self, seed: int):
+        self.seed = seed
         self.rng = np.random.Generator(np.random.PCG64(seed))
 
     def generate(self, size_bits: int) -> np.ndarray:
@@ -427,6 +428,7 @@ class XORShift32(Generator):
     generator_class = "PRNG"
 
     def __init__(self, seed: int):
+        self.seed = seed
         self.state = np.uint32(seed if seed != 0 else 2463534242)
 
     def _next_uint32(self) -> np.uint32:
@@ -451,6 +453,9 @@ class BlumBlumShub(Generator):
     generator_class = "CSPRNG"
 
     def __init__(self, p: int, q: int, seed: int):
+        self.p = p
+        self.q = q
+        self.seed = seed
         self.modulus = p * q
         self.state = seed % self.modulus
 
@@ -467,7 +472,7 @@ class BlumBlumShub(Generator):
 class AlternatingGenerator(Generator):
     """Záměrně špatný generátor pro testování detekce slabých generátorů.
     Produkuje porad 1010101....
-    Ale presto projde nejake testy (frequency a block frequency), ostatni fail"""
+    Ale presto projde nejake testy (frequency a block frequency), ostatni fail, ale podezrelke p hodnoty, ocekavcan"""
 
     generator_class = "PR"
 

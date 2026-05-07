@@ -1,0 +1,129 @@
+sample_size,generator,test,repeats,expected_per_bin,p_bin_00_10,p_bin_10_20,p_bin_20_30,p_bin_30_40,p_bin_40_50,p_bin_50_60,p_bin_60_70,p_bin_70_80,p_bin_80_90,p_bin_90_100,max_bin_deviation
+1000,Alternating Generator,Autocorrelation Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Alternating Generator,Block Frequency Test,500,50.0,0,0,0,0,0,0,0,0,0,500,450.0
+1000,Alternating Generator,Diehard Birthday Spacings Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Alternating Generator,Dieharder Byte Distribution Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Alternating Generator,Frequency (Monobit) Test,500,50.0,0,0,0,0,0,0,0,0,0,500,450.0
+1000,Alternating Generator,Linear Complexity Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Alternating Generator,Runs Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Alternating Generator,Spectral Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Ambient Noise Generator,Autocorrelation Test,500,50.0,48,68,46,56,40,64,48,45,45,40,18.0
+1000,Ambient Noise Generator,Block Frequency Test,500,50.0,52,55,70,48,56,45,48,46,40,40,20.0
+1000,Ambient Noise Generator,Diehard Birthday Spacings Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Ambient Noise Generator,Dieharder Byte Distribution Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Ambient Noise Generator,Frequency (Monobit) Test,500,50.0,47,51,58,37,58,46,52,34,76,41,26.0
+1000,Ambient Noise Generator,Linear Complexity Test,500,50.0,68,13,15,28,26,0,40,0,66,244,194.0
+1000,Ambient Noise Generator,Runs Test,500,50.0,48,59,48,60,50,48,59,46,46,36,14.0
+1000,Ambient Noise Generator,Spectral Test,500,50.0,63,43,49,77,0,94,0,119,0,55,69.0
+1000,Blum-Blum-Shub,Autocorrelation Test,500,50.0,43,45,48,52,41,72,45,58,43,53,22.0
+1000,Blum-Blum-Shub,Block Frequency Test,500,50.0,65,59,60,46,54,45,54,42,37,38,15.0
+1000,Blum-Blum-Shub,Diehard Birthday Spacings Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Blum-Blum-Shub,Dieharder Byte Distribution Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Blum-Blum-Shub,Frequency (Monobit) Test,500,50.0,45,52,54,49,70,35,35,44,73,43,23.0
+1000,Blum-Blum-Shub,Linear Complexity Test,500,50.0,71,8,24,30,33,0,32,0,66,236,186.0
+1000,Blum-Blum-Shub,Runs Test,500,50.0,46,41,48,45,57,48,60,54,42,59,10.0
+1000,Blum-Blum-Shub,Spectral Test,500,50.0,54,39,56,67,0,110,0,115,0,59,65.0
+1000,LCG,Autocorrelation Test,500,50.0,32,38,46,58,39,68,45,55,64,55,18.0
+1000,LCG,Block Frequency Test,500,50.0,29,37,38,49,39,57,55,58,69,69,21.0
+1000,LCG,Diehard Birthday Spacings Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,LCG,Dieharder Byte Distribution Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,LCG,Frequency (Monobit) Test,500,50.0,25,52,47,60,67,29,48,52,80,40,30.0
+1000,LCG,Linear Complexity Test,500,50.0,74,8,13,26,33,0,42,0,67,237,187.0
+1000,LCG,Runs Test,500,50.0,29,37,49,53,52,54,54,54,59,59,21.0
+1000,LCG,Spectral Test,500,50.0,68,36,50,74,0,94,0,113,0,65,63.0
+1000,Mersenne Twister,Autocorrelation Test,500,50.0,49,44,51,45,38,53,37,63,62,58,13.0
+1000,Mersenne Twister,Block Frequency Test,500,50.0,53,55,52,39,48,43,54,57,47,52,11.0
+1000,Mersenne Twister,Diehard Birthday Spacings Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Mersenne Twister,Dieharder Byte Distribution Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Mersenne Twister,Frequency (Monobit) Test,500,50.0,41,42,49,47,56,38,45,61,81,40,31.0
+1000,Mersenne Twister,Linear Complexity Test,500,50.0,53,5,18,31,30,0,43,0,67,253,203.0
+1000,Mersenne Twister,Runs Test,500,50.0,48,39,48,45,56,39,37,61,70,57,20.0
+1000,Mersenne Twister,Spectral Test,500,50.0,55,44,51,83,0,105,0,117,0,45,67.0
+1000,PCG64,Autocorrelation Test,500,50.0,47,57,64,50,37,53,49,48,48,47,14.0
+1000,PCG64,Block Frequency Test,500,50.0,53,50,45,40,54,50,62,51,48,47,12.0
+1000,PCG64,Diehard Birthday Spacings Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,PCG64,Dieharder Byte Distribution Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,PCG64,Frequency (Monobit) Test,500,50.0,44,53,56,46,54,43,48,46,76,34,26.0
+1000,PCG64,Linear Complexity Test,500,50.0,73,10,19,31,27,0,29,0,69,242,192.0
+1000,PCG64,Runs Test,500,50.0,46,56,47,60,53,43,45,56,45,49,10.0
+1000,PCG64,Spectral Test,500,50.0,53,46,72,79,0,95,0,106,0,49,56.0
+1000,Repeating Generator,Autocorrelation Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Repeating Generator,Block Frequency Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Repeating Generator,Diehard Birthday Spacings Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Repeating Generator,Dieharder Byte Distribution Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Repeating Generator,Frequency (Monobit) Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Repeating Generator,Linear Complexity Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Repeating Generator,Runs Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,Repeating Generator,Spectral Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,XORShift32,Autocorrelation Test,500,50.0,41,44,60,45,32,68,49,73,48,40,23.0
+1000,XORShift32,Block Frequency Test,500,50.0,54,56,33,50,46,51,40,63,56,51,17.0
+1000,XORShift32,Diehard Birthday Spacings Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,XORShift32,Dieharder Byte Distribution Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000,XORShift32,Frequency (Monobit) Test,500,50.0,49,58,51,43,52,49,43,53,70,32,20.0
+1000,XORShift32,Linear Complexity Test,500,50.0,58,6,11,35,34,0,31,0,71,254,204.0
+1000,XORShift32,Runs Test,500,50.0,38,46,52,45,49,52,56,65,51,46,15.0
+1000,XORShift32,Spectral Test,500,50.0,61,42,55,85,0,84,0,112,0,61,62.0
+1000000,Alternating Generator,Autocorrelation Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Alternating Generator,Block Frequency Test,500,50.0,0,0,0,0,0,0,0,0,0,500,450.0
+1000000,Alternating Generator,Diehard Birthday Spacings Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Alternating Generator,Dieharder Byte Distribution Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Alternating Generator,Frequency (Monobit) Test,500,50.0,0,0,0,0,0,0,0,0,0,500,450.0
+1000000,Alternating Generator,Linear Complexity Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Alternating Generator,Runs Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Alternating Generator,Spectral Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Ambient Noise Generator,Autocorrelation Test,500,50.0,61,58,48,45,47,34,55,50,56,46,16.0
+1000000,Ambient Noise Generator,Block Frequency Test,500,50.0,49,49,61,49,50,57,58,46,45,36,14.0
+1000000,Ambient Noise Generator,Diehard Birthday Spacings Test,500,50.0,49,47,46,52,58,36,64,54,35,59,15.0
+1000000,Ambient Noise Generator,Dieharder Byte Distribution Test,500,50.0,52,48,59,43,47,51,50,54,49,47,9.0
+1000000,Ambient Noise Generator,Frequency (Monobit) Test,500,50.0,61,50,33,48,55,58,44,47,51,53,17.0
+1000000,Ambient Noise Generator,Linear Complexity Test,500,50.0,56,44,55,44,52,44,48,44,51,62,12.0
+1000000,Ambient Noise Generator,Runs Test,500,50.0,61,58,47,46,47,32,57,51,56,45,18.0
+1000000,Ambient Noise Generator,Spectral Test,500,50.0,46,55,54,50,61,41,50,55,50,38,12.0
+1000000,Blum-Blum-Shub,Autocorrelation Test,500,50.0,53,43,44,43,54,66,51,48,46,52,16.0
+1000000,Blum-Blum-Shub,Block Frequency Test,500,50.0,53,51,53,49,51,47,53,42,59,42,9.0
+1000000,Blum-Blum-Shub,Diehard Birthday Spacings Test,500,50.0,50,47,49,23,55,43,49,66,50,68,27.0
+1000000,Blum-Blum-Shub,Dieharder Byte Distribution Test,500,50.0,57,48,41,62,56,39,54,54,48,41,12.0
+1000000,Blum-Blum-Shub,Frequency (Monobit) Test,500,50.0,58,43,40,55,64,46,50,38,62,44,14.0
+1000000,Blum-Blum-Shub,Linear Complexity Test,500,50.0,51,40,43,44,51,53,57,45,67,49,17.0
+1000000,Blum-Blum-Shub,Runs Test,500,50.0,53,43,44,43,54,67,51,47,46,52,17.0
+1000000,Blum-Blum-Shub,Spectral Test,500,50.0,53,45,43,55,60,44,49,52,53,46,10.0
+1000000,LCG,Autocorrelation Test,500,50.0,21,19,29,55,63,65,57,68,52,71,31.0
+1000000,LCG,Block Frequency Test,500,50.0,0,0,0,0,0,0,0,0,0,500,450.0
+1000000,LCG,Diehard Birthday Spacings Test,500,50.0,70,57,49,45,48,35,47,48,45,56,20.0
+1000000,LCG,Dieharder Byte Distribution Test,500,50.0,0,0,0,0,0,0,0,0,0,500,450.0
+1000000,LCG,Frequency (Monobit) Test,500,50.0,11,24,34,46,60,59,75,59,66,66,39.0
+1000000,LCG,Linear Complexity Test,500,50.0,63,53,50,41,48,49,46,54,54,42,13.0
+1000000,LCG,Runs Test,500,50.0,21,19,29,55,63,64,57,69,53,70,31.0
+1000000,LCG,Spectral Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Mersenne Twister,Autocorrelation Test,500,50.0,45,42,50,45,68,45,54,44,48,59,18.0
+1000000,Mersenne Twister,Block Frequency Test,500,50.0,47,45,54,39,52,61,55,55,36,56,14.0
+1000000,Mersenne Twister,Diehard Birthday Spacings Test,500,50.0,44,53,46,31,61,34,59,65,52,55,19.0
+1000000,Mersenne Twister,Dieharder Byte Distribution Test,500,50.0,47,47,42,56,43,55,65,45,48,52,15.0
+1000000,Mersenne Twister,Frequency (Monobit) Test,500,50.0,44,53,39,51,52,67,49,42,46,57,17.0
+1000000,Mersenne Twister,Linear Complexity Test,500,50.0,39,60,46,45,60,46,58,56,47,43,11.0
+1000000,Mersenne Twister,Runs Test,500,50.0,45,42,50,46,66,46,55,43,49,58,16.0
+1000000,Mersenne Twister,Spectral Test,500,50.0,49,53,46,43,54,43,62,46,60,44,12.0
+1000000,PCG64,Autocorrelation Test,500,50.0,58,52,36,45,44,56,46,52,51,60,14.0
+1000000,PCG64,Block Frequency Test,500,50.0,52,54,56,42,44,60,53,50,42,47,10.0
+1000000,PCG64,Diehard Birthday Spacings Test,500,50.0,48,46,46,43,61,46,55,52,52,51,11.0
+1000000,PCG64,Dieharder Byte Distribution Test,500,50.0,52,50,56,66,43,47,52,47,46,41,16.0
+1000000,PCG64,Frequency (Monobit) Test,500,50.0,60,49,51,50,50,47,42,56,58,37,13.0
+1000000,PCG64,Linear Complexity Test,500,50.0,54,64,54,68,43,47,31,49,38,52,19.0
+1000000,PCG64,Runs Test,500,50.0,58,52,35,46,43,56,47,52,52,59,15.0
+1000000,PCG64,Spectral Test,500,50.0,59,52,67,65,37,36,58,38,47,41,17.0
+1000000,Repeating Generator,Autocorrelation Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Repeating Generator,Block Frequency Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Repeating Generator,Diehard Birthday Spacings Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Repeating Generator,Dieharder Byte Distribution Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Repeating Generator,Frequency (Monobit) Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Repeating Generator,Linear Complexity Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Repeating Generator,Runs Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,Repeating Generator,Spectral Test,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+1000000,XORShift32,Autocorrelation Test,500,50.0,47,53,60,44,50,55,47,44,45,55,10.0
+1000000,XORShift32,Block Frequency Test,500,50.0,44,41,57,51,58,56,39,53,49,52,11.0
+1000000,XORShift32,Diehard Birthday Spacings Test,500,50.0,44,61,50,45,51,37,52,57,40,63,13.0
+1000000,XORShift32,Dieharder Byte Distribution Test,500,50.0,43,42,52,47,44,58,47,44,58,65,15.0
+1000000,XORShift32,Frequency (Monobit) Test,500,50.0,39,44,55,43,62,56,56,46,47,52,12.0
+1000000,XORShift32,Linear Complexity Test,500,50.0,48,31,49,58,53,54,53,46,63,45,19.0
+1000000,XORShift32,Runs Test,500,50.0,47,54,60,45,50,52,49,44,44,55,10.0
+1000000,XORShift32,Spectral Test,500,50.0,60,47,46,56,59,44,54,34,56,44,16.0

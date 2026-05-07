@@ -1,0 +1,9 @@
+generator,generator_class,test,sample_size,sample_iter,pass_rate,mean_p,median_p,empirical_pass_rate,empirical_fail_rate,posterior_pass_threshold_probability,posterior_fail_threshold_probability,avg_gen_time_ms,avg_test_time_ms,verdict,bayes_verdict
+Repeating Generator,PR,Frequency (Monobit) Test,1000000,500,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.30310872610425577,0.5843372540548444,FAIL,FAIL
+Repeating Generator,PR,Runs Test,1000000,500,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.30310872610425577,0.1735344939515926,FAIL,FAIL
+Repeating Generator,PR,Block Frequency Test,1000000,500,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.30310872610425577,0.4984559344011359,FAIL,FAIL
+Repeating Generator,PR,Autocorrelation Test,1000000,500,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.30310872610425577,0.21673384588211775,FAIL,FAIL
+Repeating Generator,PR,Spectral Test,1000000,500,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.30310872610425577,11.826556926360354,FAIL,FAIL
+Repeating Generator,PR,Linear Complexity Test,1000000,500,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.30310872610425577,9.707456641015597,FAIL,FAIL
+Repeating Generator,PR,Diehard Birthday Spacings Test,1000000,500,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.30310872610425577,5.927277177106589,FAIL,FAIL
+Repeating Generator,PR,Dieharder Byte Distribution Test,1000000,500,0.0,0.0,0.0,0.0,1.0,0.0,1.0,0.30310872610425577,1.8551288598100655,FAIL,FAIL

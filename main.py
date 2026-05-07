@@ -68,8 +68,10 @@ def make_output_paths(output_txt_path: str) -> dict:
     return {
         "single_source_metrics": f"{base}-single_source_metrics.csv",
         "single_source_summary": f"{base}-single_source_summary.csv",
+        "single_source_pvalue_histograms": f"{base}-single_source_pvalue_histograms.csv",
         "benchmark_metrics": f"{base}-benchmark_metrics.csv",
         "benchmark_class": f"{base}-benchmark_class_summary.csv",
+        "benchmark_pvalue_histograms": f"{base}-benchmark_pvalue_histograms.csv",
     }
 
 
@@ -306,6 +308,66 @@ def compute_pass_chances(
     }
 
 
+def _derive_sample_seed(base_seed: int, sample_index: int) -> int:
+    mixed = (int(base_seed) ^ ((sample_index + 1) * 0x9E3779B1)) & 0xFFFFFFFF
+    return mixed if mixed != 0 else 1
+
+
+def _spawn_independent_generator(generator, sample_index: int):
+    if isinstance(generator, (AudioSampleBatchGenerator, AmbientNoiseGenerator)):
+        return generator
+    if isinstance(generator, (AlternatingGenerator, RepeatingGenerator)):
+        return generator
+    base_seed = getattr(generator, "seed", None)
+    if base_seed is None:
+        return generator
+    seed = _derive_sample_seed(base_seed, sample_index)
+    if isinstance(generator, LCG):
+        return LCG(
+            seed=seed,
+            multiplier=generator.multiplier,
+            increment=generator.increment,
+            modulus=generator.modulus,
+        )
+    if isinstance(generator, MersenneTwister):
+        return MersenneTwister(seed=seed)
+    if isinstance(generator, PCG64Wrapper):
+        return PCG64Wrapper(seed=seed)
+    if isinstance(generator, XORShift32):
+        return XORShift32(seed=seed)
+    if isinstance(generator, BlumBlumShub):
+        return BlumBlumShub(p=generator.p, q=generator.q, seed=seed)
+    return generator
+
+
+def _compute_pvalue_histogram(p_values: list[float]) -> dict:
+    values = np.asarray(p_values, dtype=float)
+    if values.size == 0:
+        expected = 0.0
+        counts = [0] * 10
+        max_deviation = 0.0
+    else:
+        bins = np.linspace(0.0, 1.0, 11)
+        counts_array, _ = np.histogram(values, bins=bins)
+        counts = [int(v) for v in counts_array.tolist()]
+        expected = float(values.size) / 10.0
+        max_deviation = float(np.max(np.abs(counts_array - expected)))
+    return {
+        "expected_per_bin": expected,
+        "max_bin_deviation": max_deviation,
+        "p_bin_00_10": counts[0],
+        "p_bin_10_20": counts[1],
+        "p_bin_20_30": counts[2],
+        "p_bin_30_40": counts[3],
+        "p_bin_40_50": counts[4],
+        "p_bin_50_60": counts[5],
+        "p_bin_60_70": counts[6],
+        "p_bin_70_80": counts[7],
+        "p_bin_80_90": counts[8],
+        "p_bin_90_100": counts[9],
+    }
+
+
 def run_single_source_mode(
         generators,
         tests_to_run,
@@ -318,6 +380,7 @@ def run_single_source_mode(
 ):
     single_source_rows = []
     single_source_summary_rows = []
+    single_source_histogram_rows = []
 
     note = (
         "Pozn.: Hlavni verdikt PASS/FAIL je podle pass-rate vuci NIST proportion prahu. "
@@ -351,8 +414,9 @@ def run_single_source_mode(
         posterior_pass_probabilities_for_generator = []
         pass_rates_for_generator = []
 
-        for _ in tqdm(range(num_samples), desc=f"Zpracování vzorků pro {gen_name}", leave=False):
-            sample_bits, sample_elapsed_sec, _ = profile_generator(generator, size_bits=sample_size)
+        for sample_index in tqdm(range(num_samples), desc=f"Zpracování vzorků pro {gen_name}", leave=False):
+            sample_generator = _spawn_independent_generator(generator, sample_index)
+            sample_bits, sample_elapsed_sec, _ = profile_generator(sample_generator, size_bits=sample_size)
             gen_times_ms.append(sample_elapsed_sec * 1000.0)
 
             for test_name, test in tests_to_run:
@@ -393,6 +457,14 @@ def run_single_source_mode(
                 "avg_test_time_ms": avg_test_time_ms,
                 "verdict": passrate_verdict,
                 "bayes_verdict": bayes_verdict,
+            })
+            histogram = _compute_pvalue_histogram(p_values_by_test[test_name])
+            single_source_histogram_rows.append({
+                "generator": gen_name,
+                "test": test_name,
+                "sample_size": sample_size,
+                "sample_iter": num_samples,
+                **histogram,
             })
             pass_rates_for_generator.append(metrics["pass_rate"])
             empirical_pass_rates_for_generator.append(metrics["empirical_pass_rate"])
@@ -530,11 +602,23 @@ def run_single_source_mode(
         ],
         single_source_summary_rows,
     )
+    write_csv_rows(
+        csv_paths["single_source_pvalue_histograms"],
+        [
+            "generator", "test", "sample_size", "sample_iter",
+            "expected_per_bin",
+            "p_bin_00_10", "p_bin_10_20", "p_bin_20_30", "p_bin_30_40", "p_bin_40_50",
+            "p_bin_50_60", "p_bin_60_70", "p_bin_70_80", "p_bin_80_90", "p_bin_90_100",
+            "max_bin_deviation",
+        ],
+        single_source_histogram_rows,
+    )
 
     csv_info = (
         "CSV export:\n"
         f"- {csv_paths['single_source_metrics']}\n"
         f"- {csv_paths['single_source_summary']}\n"
+        f"- {csv_paths['single_source_pvalue_histograms']}\n"
     )
     print(csv_info)
     file.write(csv_info)
@@ -565,6 +649,7 @@ def run_benchmark_mode(
         "test_peak_sum": 0,
         "p_value_sum": 0.0,
         "pass_sum": 0,
+        "p_values": [],
     })
     class_stats = defaultdict(lambda: {
         "count": 0,
@@ -580,8 +665,9 @@ def run_benchmark_mode(
         for size_bits in sample_sizes:
             if isinstance(generator, AudioSampleBatchGenerator):
                 generator.reset_samples()
-            for _ in tqdm(range(repeats), desc=f"Benchmark {gen_name} @ {size_bits}", leave=False):
-                sample_bits, gen_time, gen_peak = profile_generator(generator, size_bits=size_bits)
+            for repeat_index in tqdm(range(repeats), desc=f"Benchmark {gen_name} @ {size_bits}", leave=False):
+                sample_generator = _spawn_independent_generator(generator, repeat_index)
+                sample_bits, gen_time, gen_peak = profile_generator(sample_generator, size_bits=size_bits)
 
                 if not isinstance(sample_bits, np.ndarray):
                     sample_bits = np.array(sample_bits, dtype=np.uint8)
@@ -597,6 +683,7 @@ def run_benchmark_mode(
                     row["test_peak_sum"] += measured["peak_bytes"]
                     row["p_value_sum"] += measured["p_value"]
                     row["pass_sum"] += int(measured["passed"])
+                    row["p_values"].append(float(measured["p_value"]))
 
                     gen_class = getattr(generator, "generator_class", "UNKNOWN")
                     class_key = (gen_class, size_bits)
@@ -611,6 +698,7 @@ def run_benchmark_mode(
 
     file.write("Výsledky benchmarku (průměry):\n")
     benchmark_rows = []
+    benchmark_histogram_rows = []
     class_pass_summary = defaultdict(lambda: {
         "empirical_pass_values": [],
         "posterior_pass_values": [],
@@ -667,6 +755,14 @@ def run_benchmark_mode(
             "posterior_fail_threshold_probability": pass_chances["posterior_fail_threshold_probability"],
             "passrate_verdict": pass_chances["passrate_verdict"],
             "bayes_verdict": pass_chances["bayes_verdict"],
+        })
+        histogram = _compute_pvalue_histogram(row["p_values"])
+        benchmark_histogram_rows.append({
+            "sample_size": size_bits,
+            "generator": gen_name,
+            "test": test_name,
+            "repeats": run_count,
+            **histogram,
         })
 
     file.write("==================== Agregace podle tříd generátorů ====================\n")
@@ -760,11 +856,23 @@ def run_benchmark_mode(
         ],
         class_rows,
     )
+    write_csv_rows(
+        csv_paths["benchmark_pvalue_histograms"],
+        [
+            "sample_size", "generator", "test", "repeats",
+            "expected_per_bin",
+            "p_bin_00_10", "p_bin_10_20", "p_bin_20_30", "p_bin_30_40", "p_bin_40_50",
+            "p_bin_50_60", "p_bin_60_70", "p_bin_70_80", "p_bin_80_90", "p_bin_90_100",
+            "max_bin_deviation",
+        ],
+        benchmark_histogram_rows,
+    )
 
     csv_info = (
         "CSV export:\n"
         f"- {csv_paths['benchmark_metrics']}\n"
         f"- {csv_paths['benchmark_class']}\n"
+        f"- {csv_paths['benchmark_pvalue_histograms']}\n"
     )
     print(csv_info)
     file.write(csv_info)

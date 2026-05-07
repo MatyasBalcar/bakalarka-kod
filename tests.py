@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import scipy.special as spc
 from numba import njit
+from scipy import stats
 from tqdm import tqdm
 
 TEST_COMPLEXITY = {
@@ -271,28 +272,49 @@ class DiehardBirthdaySpacingsTest(TestStrategy):
 
     def execute(self, bits: np.ndarray, n_samples: int = 512, bits_per_sample: int = 24) -> float:
         required_bits = n_samples * bits_per_sample
-        if len(bits) < required_bits:
+        sequence_length = len(bits)
+
+        if sequence_length < required_bits:
             return 0.0
 
-        sample_bit_matrix = bits[:required_bits].reshape(n_samples, bits_per_sample)
-        weights = (1 << np.arange(bits_per_sample - 1, -1, -1, dtype=np.int64))
-        birthdays = (sample_bit_matrix.astype(np.int64) * weights).sum(axis=1)
-
-        birthdays.sort()
-        spacings = np.diff(birthdays)
-        if spacings.size == 0:
+        block_count = sequence_length // required_bits
+        if block_count <= 0:
             return 0.0
-
-        _, counts = np.unique(spacings, return_counts=True)
-        collisions = np.sum(np.maximum(counts - 1, 0))
 
         sample_space_size = float(2 ** bits_per_sample)
-        expected_collision_count = (n_samples ** 3) / (4.0 * sample_space_size)
-        if expected_collision_count <= 0:
+        expected_per_block = (n_samples ** 3) / (4.0 * sample_space_size)
+        expected_total = block_count * expected_per_block
+
+        if expected_total <= 0:
             return 0.0
 
-        z_score = (collisions - expected_collision_count) / np.sqrt(expected_collision_count)
-        return float(spc.erfc(abs(z_score) / np.sqrt(2.0)))
+        total_collisions = 0
+
+        weights = (1 << np.arange(bits_per_sample - 1, -1, -1, dtype=np.int64))
+
+        for block_index in range(block_count):
+            start = block_index * required_bits
+            end = start + required_bits
+
+            sample_bit_matrix = bits[start:end].reshape(n_samples, bits_per_sample)
+            birthdays = (sample_bit_matrix.astype(np.int64) * weights).sum(axis=1)
+
+            birthdays.sort()
+            spacings = np.diff(birthdays)
+
+            if spacings.size == 0:
+                continue
+
+            _, counts = np.unique(spacings, return_counts=True)
+
+            collisions = np.sum(counts * (counts - 1) // 2)
+            total_collisions += int(collisions)
+
+        lower_tail = stats.poisson.cdf(total_collisions, expected_total)
+        upper_tail = stats.poisson.sf(total_collisions - 1, expected_total)
+        p_value = 2.0 * min(lower_tail, upper_tail)
+
+        return float(np.clip(p_value, 0.0, 1.0))
 
 
 class DieharderByteDistributionTest(TestStrategy):

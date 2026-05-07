@@ -1,0 +1,9 @@
+generator,test,sample_size,sample_iter,expected_per_bin,p_bin_00_10,p_bin_10_20,p_bin_20_30,p_bin_30_40,p_bin_40_50,p_bin_50_60,p_bin_60_70,p_bin_70_80,p_bin_80_90,p_bin_90_100,max_bin_deviation
+XORShift32,Frequency (Monobit) Test,1000000,500,50.0,39,44,55,43,62,56,56,46,47,52,12.0
+XORShift32,Runs Test,1000000,500,50.0,47,54,60,45,50,52,49,44,44,55,10.0
+XORShift32,Block Frequency Test,1000000,500,50.0,44,41,57,51,58,56,39,53,49,52,11.0
+XORShift32,Autocorrelation Test,1000000,500,50.0,47,53,60,44,50,55,47,44,45,55,10.0
+XORShift32,Spectral Test,1000000,500,50.0,60,47,46,56,59,44,54,34,56,44,16.0
+XORShift32,Linear Complexity Test,1000000,500,50.0,48,31,49,58,53,54,53,46,63,45,19.0
+XORShift32,Diehard Birthday Spacings Test,1000000,500,50.0,44,61,50,45,51,37,52,57,40,63,13.0
+XORShift32,Dieharder Byte Distribution Test,1000000,500,50.0,43,42,52,47,44,58,47,44,58,65,15.0

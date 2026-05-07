@@ -1,0 +1,9 @@
+generator,test,sample_size,sample_iter,expected_per_bin,p_bin_00_10,p_bin_10_20,p_bin_20_30,p_bin_30_40,p_bin_40_50,p_bin_50_60,p_bin_60_70,p_bin_70_80,p_bin_80_90,p_bin_90_100,max_bin_deviation
+LCG,Frequency (Monobit) Test,1000000,500,50.0,11,24,34,46,60,59,75,59,66,66,39.0
+LCG,Runs Test,1000000,500,50.0,21,19,29,55,63,64,57,69,53,70,31.0
+LCG,Block Frequency Test,1000000,500,50.0,0,0,0,0,0,0,0,0,0,500,450.0
+LCG,Autocorrelation Test,1000000,500,50.0,21,19,29,55,63,65,57,68,52,71,31.0
+LCG,Spectral Test,1000000,500,50.0,500,0,0,0,0,0,0,0,0,0,450.0
+LCG,Linear Complexity Test,1000000,500,50.0,63,53,50,41,48,49,46,54,54,42,13.0
+LCG,Diehard Birthday Spacings Test,1000000,500,50.0,70,57,49,45,48,35,47,48,45,56,20.0
+LCG,Dieharder Byte Distribution Test,1000000,500,50.0,0,0,0,0,0,0,0,0,0,500,450.0

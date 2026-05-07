@@ -1,0 +1,9 @@
+generator,test,sample_size,sample_iter,expected_per_bin,p_bin_00_10,p_bin_10_20,p_bin_20_30,p_bin_30_40,p_bin_40_50,p_bin_50_60,p_bin_60_70,p_bin_70_80,p_bin_80_90,p_bin_90_100,max_bin_deviation
+Mersenne Twister,Frequency (Monobit) Test,1000000,500,50.0,44,53,39,51,52,67,49,42,46,57,17.0
+Mersenne Twister,Runs Test,1000000,500,50.0,45,42,50,46,66,46,55,43,49,58,16.0
+Mersenne Twister,Block Frequency Test,1000000,500,50.0,47,45,54,39,52,61,55,55,36,56,14.0
+Mersenne Twister,Autocorrelation Test,1000000,500,50.0,45,42,50,45,68,45,54,44,48,59,18.0
+Mersenne Twister,Spectral Test,1000000,500,50.0,49,53,46,43,54,43,62,46,60,44,12.0
+Mersenne Twister,Linear Complexity Test,1000000,500,50.0,39,60,46,45,60,46,58,56,47,43,11.0
+Mersenne Twister,Diehard Birthday Spacings Test,1000000,500,50.0,44,53,46,31,61,34,59,65,52,55,19.0
+Mersenne Twister,Dieharder Byte Distribution Test,1000000,500,50.0,47,47,42,56,43,55,65,45,48,52,15.0

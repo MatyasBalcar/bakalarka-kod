@@ -1,0 +1,114 @@
+Mode: single-source
+Ambient noise config: whitening=von-neumann+sha256, sample_rate=48000, hash_block_bytes=32
+
+Teoretická složitost testů:
+  - Frequency (Monobit) Test: čas O(n), paměť O(n)
+  - Runs Test: čas O(n), paměť O(1)
+  - Block Frequency Test: čas O(n), paměť O(n)
+  - Autocorrelation Test: čas O(n), paměť O(1)
+  - Spectral Test: čas O(n log n), paměť O(n)
+  - Linear Complexity Test: čas O(n * m), paměť O(m)
+  - Diehard Birthday Spacings Test: čas O(n log n), paměť O(n)
+  - Dieharder Byte Distribution Test: čas O(n), paměť O(1)
+
+Pozn.: Hlavni verdikt PASS/FAIL je podle pass-rate vuci NIST proportion prahu. Bayesovske metriky (Jeffreys prior) jsou pouze doplnkove a exportuji se do CSV.
+
+==================================================
+Vícestupňové testování: LCG
+Třída generátoru: PRNG
+Parametry: 500 vzorků po 1000000 bitech
+Minimální požadovaná úspěšnost (Podle NIST) (Proportion): 97.67 %
+--------------------------------------------------
+  Frequency (Monobit) Test:
+   - Úspěšných vzorků: 500/500 (100.00 %)
+   - Mean p-value: 0.600449, Median p-value: 0.624842
+   - Avg gen time: 35.11 ms, Avg test time: 0.56 ms
+   - Empirický podíl úspěšných vzorků: 1.0000, Empirický podíl neúspěšných: 0.0000
+   - Posteriorní pravděpodobnost splnění prahu: 1.0000, Nesplnění prahu: 0.0000
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
+
+  Runs Test:
+   - Úspěšných vzorků: 500/500 (100.00 %)
+   - Mean p-value: 0.587384, Median p-value: 0.593485
+   - Avg gen time: 35.11 ms, Avg test time: 0.40 ms
+   - Empirický podíl úspěšných vzorků: 1.0000, Empirický podíl neúspěšných: 0.0000
+   - Posteriorní pravděpodobnost splnění prahu: 1.0000, Nesplnění prahu: 0.0000
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
+
+  Block Frequency Test:
+   - Úspěšných vzorků: 500/500 (100.00 %)
+   - Mean p-value: 0.999981, Median p-value: 1.000000
+   - Avg gen time: 35.11 ms, Avg test time: 0.51 ms
+   - Empirický podíl úspěšných vzorků: 1.0000, Empirický podíl neúspěšných: 0.0000
+   - Posteriorní pravděpodobnost splnění prahu: 1.0000, Nesplnění prahu: 0.0000
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
+
+  Autocorrelation Test:
+   - Úspěšných vzorků: 500/500 (100.00 %)
+   - Mean p-value: 0.587305, Median p-value: 0.593343
+   - Avg gen time: 35.11 ms, Avg test time: 0.21 ms
+   - Empirický podíl úspěšných vzorků: 1.0000, Empirický podíl neúspěšných: 0.0000
+   - Posteriorní pravděpodobnost splnění prahu: 1.0000, Nesplnění prahu: 0.0000
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
+
+  Spectral Test:
+   - Úspěšných vzorků: 0/500 (0.00 %)
+   - Mean p-value: 0.000000, Median p-value: 0.000000
+   - Avg gen time: 35.11 ms, Avg test time: 11.52 ms
+   - Empirický podíl úspěšných vzorků: 0.0000, Empirický podíl neúspěšných: 1.0000
+   - Posteriorní pravděpodobnost splnění prahu: 0.0000, Nesplnění prahu: 1.0000
+   - Verdikt testu (pass-rate): FAIL
+   - Bayes verdict (doplnkove): FAIL
+
+  Linear Complexity Test:
+   - Úspěšných vzorků: 491/500 (98.20 %)
+   - Mean p-value: 0.486885, Median p-value: 0.486817
+   - Avg gen time: 35.11 ms, Avg test time: 293.88 ms
+   - Empirický podíl úspěšných vzorků: 0.9820, Empirický podíl neúspěšných: 0.0180
+   - Posteriorní pravděpodobnost splnění prahu: 0.7808, Nesplnění prahu: 0.2192
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): FAIL
+
+  Diehard Birthday Spacings Test:
+   - Úspěšných vzorků: 496/500 (99.20 %)
+   - Mean p-value: 0.480002, Median p-value: 0.458916
+   - Avg gen time: 35.11 ms, Avg test time: 7.26 ms
+   - Empirický podíl úspěšných vzorků: 0.9920, Empirický podíl neúspěšných: 0.0080
+   - Posteriorní pravděpodobnost splnění prahu: 0.9949, Nesplnění prahu: 0.0051
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
+
+  Dieharder Byte Distribution Test:
+   - Úspěšných vzorků: 500/500 (100.00 %)
+   - Mean p-value: 0.999936, Median p-value: 1.000000
+   - Avg gen time: 35.11 ms, Avg test time: 1.70 ms
+   - Empirický podíl úspěšných vzorků: 1.0000, Empirický podíl neúspěšných: 0.0000
+   - Posteriorní pravděpodobnost splnění prahu: 1.0000, Nesplnění prahu: 0.0000
+   - Verdikt testu (pass-rate): PASS
+   - Bayes verdict (doplnkove): PASS
+
+  => Souhrn generátoru LCG: 7/8 testů PASS
+     PASS: Frequency (Monobit) Test, Runs Test, Block Frequency Test, Autocorrelation Test, Linear Complexity Test, Diehard Birthday Spacings Test, Dieharder Byte Distribution Test
+     FAIL: Spectral Test
+
+  => Průměrný čas generování pro LCG: 35.11 ms
+  => Průměrný čas testu pro LCG: 39.51 ms
+  => Průměrný pass-rate přes všechny testy: 87.17 %
+  => Empirický podíl úspěšných vzorků (průměr přes testy): 0.8718 (0-1)
+  => Empirický podíl úspěšných vzorků (geometrický průměr): 0.0315 (0-1)
+  => Empirický podíl úspěšných vzorků (minimum přes testy): 0.0000 (0-1)
+  => Empirický podíl neúspěšných vzorků: 1.0000 (0-1)
+  => Posteriorní pravděpodobnost splnění prahu (průměr přes testy): 0.8470 (0-1)
+  => Posteriorní pravděpodobnost splnění prahu (geometrický průměr): 0.0306 (0-1)
+  => Posteriorní pravděpodobnost splnění prahu (minimum přes testy): 0.0000 (0-1)
+  => Posteriorní pravděpodobnost nesplnění prahu: 1.0000 (0-1)
+
+CSV export:
+- outputs/LCG/output_single-source-2026-05-02-00-25-00-single_source_metrics.csv
+- outputs/LCG/output_single-source-2026-05-02-00-25-00-single_source_summary.csv
+- outputs/LCG/output_single-source-2026-05-02-00-25-00-single_source_pvalue_histograms.csv
+
