@@ -404,4 +404,4 @@ Hodnoty časové náročnosti se mohou mezi běhy mírně lišit v závislosti n
 
 Výsledky statistických testů neposkytují absolutní důkaz náhodnosti. Slouží jako empirické indikátory shody testovaných dat se zvoleným modelem náhodnosti.
 
-Specificky pro Audio Generátor jsou data uloženy v ```inputs/custom/audio-none```, pro surové data z mikrofonu, a v ```inputs/custom/audio-sha-neumann```, kde jsou data zpracována, jsou tedy stejná jako ve složce ```inputs/audio```
+Specificky pro Audio Generátor jsou data uloženy v ```inputs/custom/audio-none```, pro surové data z mikrofonu, a v ```inputs/custom/audio-sha-neumann```, kde jsou data zpracována, jsou tedy stejná jako ve složce ```inputs/audio```.
