@@ -6,7 +6,7 @@
   "alpha": 0.01,
   "bayes_pass_threshold": 0.95,
   "ambient_sample_rate": 48000,
-  "ambient_whitening": "von-neumann",
+  "ambient_whitening": "von-neumann+sha256",
   "ambient_hash_block_bytes": 32,
   "benchmark_sample_sizes": [
     1000,1000000

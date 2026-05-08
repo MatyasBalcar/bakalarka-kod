@@ -1,0 +1,9 @@
+generator,test,sample_size,sample_iter,expected_per_bin,p_bin_00_10,p_bin_10_20,p_bin_20_30,p_bin_30_40,p_bin_40_50,p_bin_50_60,p_bin_60_70,p_bin_70_80,p_bin_80_90,p_bin_90_100,max_bin_deviation
+audio-sha-neumann,Frequency (Monobit) Test,1000000,500,50.0,61,50,33,48,55,58,44,47,51,53,17.0
+audio-sha-neumann,Runs Test,1000000,500,50.0,61,58,47,46,47,32,57,51,56,45,18.0
+audio-sha-neumann,Block Frequency Test,1000000,500,50.0,49,49,61,49,50,57,58,46,45,36,14.0
+audio-sha-neumann,Autocorrelation Test,1000000,500,50.0,61,58,48,45,47,34,55,50,56,46,16.0
+audio-sha-neumann,Spectral Test,1000000,500,50.0,46,55,54,50,61,41,50,55,50,38,12.0
+audio-sha-neumann,Linear Complexity Test,1000000,500,50.0,56,44,55,44,52,44,48,44,51,62,12.0
+audio-sha-neumann,Diehard Birthday Spacings Test,1000000,500,50.0,49,47,46,52,58,36,64,54,35,59,15.0
+audio-sha-neumann,Dieharder Byte Distribution Test,1000000,500,50.0,52,48,59,43,47,51,50,54,49,47,9.0

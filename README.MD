@@ -101,12 +101,11 @@ Tento režim je vhodný zejména pro výkonnostní srovnání.
 
 - `Blum-Blum-Shub`
 
-### TRNG
+### TRNG (zdroje entropie)
 
 - `Ambient Noise Generator`
-- `AudioSampleBatchGenerator`
 
-### Kontrolní zdroje
+### Negativní kontrolní zdroje
 
 - `Alternating Generator`
 - `Repeating Generator`
@@ -404,3 +403,5 @@ Výsledky je nutné interpretovat v kontextu použité konfigurace, délky vzork
 Hodnoty časové náročnosti se mohou mezi běhy mírně lišit v závislosti na aktuálním zatížení systému.
 
 Výsledky statistických testů neposkytují absolutní důkaz náhodnosti. Slouží jako empirické indikátory shody testovaných dat se zvoleným modelem náhodnosti.
+
+Specificky pro Audio Generátor jsou data uloženy v ```inputs/custom/audio-none```, pro surové data z mikrofonu, a v ```inputs/custom/audio-sha-neumann```, kde jsou data zpracována, jsou tedy stejná jako ve složce ```inputs/audio```
