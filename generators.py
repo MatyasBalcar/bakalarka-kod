@@ -472,7 +472,7 @@ class BlumBlumShub(Generator):
 class AlternatingGenerator(Generator):
     """Záměrně špatný generátor pro testování detekce slabých generátorů.
     Produkuje porad 1010101....
-    Ale presto projde nejake testy (frequency a block frequency), ostatni fail, ale podezrelke p hodnoty, ocekavcan"""
+    Ale presto projde nejake testy (frequency a block frequency), ostatni fail, ale podezrelke p hodnoty, ocekavane"""
 
     generator_class = "PR"
 

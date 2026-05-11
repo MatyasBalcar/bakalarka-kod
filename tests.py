@@ -128,9 +128,7 @@ def fast_berlekamp_massey(block: np.ndarray) -> int:
 
 
 class TestStrategy(ABC):
-    """
-    Obecna trida pro testy, vsechny implementuji execute
-    """
+    """Obecna trida pro testy, vsechny implementuji execute"""
 
     @abstractmethod
     def execute(self, bits: np.ndarray) -> float:
@@ -138,8 +136,7 @@ class TestStrategy(ABC):
 
 
 class MonobitTest(TestStrategy):
-    """Frequency (Monobit) test.
-    """
+    """Frequency (Monobit) test."""
 
     def execute(self, bits: np.ndarray) -> float:
         sequence_length = len(bits)
@@ -149,8 +146,7 @@ class MonobitTest(TestStrategy):
 
 
 class RunsTest(TestStrategy):
-    """Runs test (test běhů).
-    """
+    """Runs test (test běhů)."""
 
     def execute(self, bits: np.ndarray) -> float:
         sequence_length = len(bits)
@@ -167,8 +163,7 @@ class RunsTest(TestStrategy):
 
 
 class BlockFrequencyTest(TestStrategy):
-    """Block Frequency test.
-    """
+    """Block Frequency test."""
 
     def execute(self, bits: np.ndarray, block_size: int = 128) -> float:
         sequence_length = len(bits)
@@ -183,8 +178,7 @@ class BlockFrequencyTest(TestStrategy):
 
 
 class AutocorrelationTest(TestStrategy):
-    """Autocorrelation test.
-    """
+    """Autocorrelation test."""
 
     def execute(self, bits: np.ndarray, lag: int = 1) -> float:
         sequence_length = len(bits)
@@ -219,8 +213,7 @@ class SpectralTest(TestStrategy):
 
 
 class LinearComplexityTest(TestStrategy):
-    """Linear Complexity test.
-    """
+    """Linear Complexity test."""
 
     def execute(self, bits: np.ndarray, block_size: int = 500) -> float:
         sequence_length = len(bits)
@@ -267,8 +260,7 @@ class LinearComplexityTest(TestStrategy):
 
 
 class DiehardBirthdaySpacingsTest(TestStrategy):
-    """Diehard-inspired Birthday Spacings test.
-    """
+    """Diehard-inspired Birthday Spacings test."""
 
     def execute(self, bits: np.ndarray, n_samples: int = 512, bits_per_sample: int = 24) -> float:
         required_bits = n_samples * bits_per_sample
@@ -318,8 +310,7 @@ class DiehardBirthdaySpacingsTest(TestStrategy):
 
 
 class DieharderByteDistributionTest(TestStrategy):
-    """Dieharder-inspired byte distribution test.
-    """
+    """Dieharder-inspired byte distribution test."""
 
     def execute(self, bits: np.ndarray) -> float:
         sequence_length = len(bits)
